@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="App.axaml" value="Piero.csproj" />
+        <entry key="Icons.axaml" value="Piero.csproj" />
+        <entry key="Piero.Ui/App.axaml" value="Piero.Ui/Piero.Ui.csproj" />
+        <entry key="Piero.Ui/MainWindow.axaml" value="Piero.csproj" />
+        <entry key="Proxy.axaml" value="Piero.csproj" />
+        <entry key="SingleFile.axaml" value="Piero.csproj" />
+        <entry key="Views/MainWindow.axaml" value="Piero.csproj" />
+      </map>
+    </option>
+  </component>
+</project>
