@@ -1,0 +1,7 @@
+{
+  "StartupConversion":"whatever",
+  "StartupProxy":"whatever",
+  "FfmpegPath":"ffmpeg",
+  "ProxyPath":"whatever",
+  "VideoPath":"./piero" // relative paths will create directories relative to video files
+}

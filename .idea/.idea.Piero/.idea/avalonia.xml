@@ -10,6 +10,7 @@
         <entry key="Proxy.axaml" value="Piero.csproj" />
         <entry key="SingleFile.axaml" value="Piero.csproj" />
         <entry key="Views/MainWindow.axaml" value="Piero.csproj" />
+        <entry key="Views/Proxy.axaml" value="Piero.csproj" />
       </map>
     </option>
   </component>

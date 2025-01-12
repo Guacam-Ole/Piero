@@ -8,7 +8,7 @@ public class VideoFile
 {
     public enum ConversionState
     {
-        Unknown,
+        Pending,
         Converting,
         Converted,
         Error
@@ -30,7 +30,7 @@ public class VideoFile
             ConversionState.Converting => "LightGray",
             ConversionState.Converted => "LightGreen",
             ConversionState.Error => "Orange",
-            ConversionState.Unknown => "LightGray",
+            ConversionState.Pending => "LightGray",
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -42,7 +42,7 @@ public class VideoFile
             ConversionState.Converting => "\u231b\ufe0f",
             ConversionState.Converted => "\ud83d\udc4d\ufe0f",
             ConversionState.Error => "\ud83d\udc4e\ufe0f",
-            ConversionState.Unknown => "\u2753\ufe0f",
+            ConversionState.Pending => "\u2753\ufe0f",
             _ => throw new ArgumentOutOfRangeException()
         };
     }

@@ -4,6 +4,7 @@ using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using Microsoft.Extensions.DependencyInjection;
 using Piero.ViewModels;
 using Piero.Views;
 
@@ -18,6 +19,13 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddServices();
+        
+        var services=serviceCollection.BuildServiceProvider();
+        var mainViewModel = services.GetRequiredService<MainWindowViewModel>();
+        
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
@@ -25,7 +33,7 @@ public partial class App : Application
             DisableAvaloniaDataAnnotationValidation();
             desktop.MainWindow = new Proxy
             {
-                DataContext = new MainWindowViewModel(),
+                DataContext = mainViewModel
             };
         }
 
