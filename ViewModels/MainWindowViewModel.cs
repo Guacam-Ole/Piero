@@ -38,7 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 {
                     FileName = $"dummy_{i}.txt", FileDate = DateTime.Now.AddDays(-2),
                     FilePath = "/etc/whatever/you/think/could/be/useful",
-                    MainVideoConversionState = (VideoFile.ConversionState)(i % 4),
+                    MainVideoConversionState = (VideoFile.ConversionState)(u % 4),
                     ProxyConversionState = VideoFile.ConversionState.Converted,
                 });
             }
