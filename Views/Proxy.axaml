@@ -7,6 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="750" d:DesignHeight="550" MinWidth="750"
         x:Class="Piero.Views.Proxy"
         x:DataType="vm:MainWindowViewModel"
+
         Icon="/Assets/avalonia-logo.ico"
         Title="Piero:DaVinci Resolve Proxy"
         TransparencyLevelHint="AcrylicBlur"
@@ -27,93 +28,53 @@
             </Border>
 
         </Panel>
-        <Panel Margin="0 10 0 0" Height="250" DockPanel.Dock="Bottom">
-            <Border BorderBrush="Aqua" BorderThickness="2" CornerRadius="13" Padding="10" Margin="4 0 4 4">
+        <Panel Margin="0 10 0 0" Height="160" DockPanel.Dock="Bottom">
+            <Border BorderBrush="Aqua" BorderThickness="2" CornerRadius="13" Padding="10" Margin="4 0 4 4"
+                    ToolTip.Tip="Conversion Settings">
                 <StackPanel>
-                    <Panel Height="30">
+                    <Panel Height="20">
                         <Label Foreground="Aqua" VerticalAlignment="Center" Content="Main Video Conversion Settings:"></Label>
                     </Panel>
-                    <StackPanel Orientation="Horizontal">
-                        <Panel Width="120">
-                            <Label Foreground="LightGray" Margin="0 0 10 0" HorizontalAlignment="Right"
-                                   VerticalAlignment="Center"
-                                   Content="VideoCodec:">
-                            </Label>
-                        </Panel>
-                        <ComboBox Width="100">
-                            <ComboBoxItem Content="mp4"></ComboBoxItem><ComboBoxItem Content="mkv"></ComboBoxItem>
-                        </ComboBox>
-                        <Panel Width="120">
-                            <Label Foreground="LightGray" Margin="0 0 10 0" HorizontalAlignment="Right"
-                                   VerticalAlignment="Center"
-                                   Content="AudioCodec:">
-                            </Label>
-                        </Panel>
-                        <ComboBox Width="100">
-                            <ComboBoxItem Content="mp4"></ComboBoxItem><ComboBoxItem Content="mkv"></ComboBoxItem>
-                        </ComboBox>
-                        <Panel Width="120">
-                            <Label Foreground="LightGray" Margin="0 0 10 0" HorizontalAlignment="Right"
-                                   VerticalAlignment="Center"
-                                   Content="Resolution:">
-                            </Label>
-                        </Panel>
-                        <ComboBox Width="150">
-                            <ComboBoxItem Content="mp4"></ComboBoxItem><ComboBoxItem Content="mkv"></ComboBoxItem>
-                        </ComboBox>
-                    </StackPanel>
                     <Panel Height="50">
-                        <TextBox Margin="0 10 0 10"></TextBox>
+                        <ComboBox Margin="0 5 0 0" x:Name="ConversionComboBox" HorizontalAlignment="Stretch"
+                                  ItemsSource="{ Binding Config.FfmpegConfigs }"
+                                  SelectedIndex="{ Binding Config.ConversionIndex }">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Label Content="{ Binding Label }  "></Label>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </Panel>
-                    <Panel>
-                        <Label Foreground="Aqua" Content="Proxy Conversion Settings:"></Label>
+                    <Panel Height="20">
+                        <Label Foreground="Aqua" VerticalAlignment="Center" Content="Proxy Video Conversion Settings:"></Label>
                     </Panel>
-                    <StackPanel Orientation="Horizontal">
-                        <Panel Width="120">
-                            <Label Foreground="LightGray" Margin="0 0 10 0" HorizontalAlignment="Right"
-                                   VerticalAlignment="Center"
-                                   Content="VideoCodec:">
-                            </Label>
-                        </Panel>
-                        <ComboBox Width="100">
-                            <ComboBoxItem Content="mp4"></ComboBoxItem><ComboBoxItem Content="mkv"></ComboBoxItem>
+                    <Panel Height="50">
+                        <ComboBox Margin="0 5 0 0" x:Name="ProxyComboBox" HorizontalAlignment="Stretch"
+                                  ItemsSource="{ Binding Config.FfmpegConfigs }"
+                                  SelectedIndex="{ Binding Config.ProxyIndex }">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Label Content="{ Binding Label }  "></Label>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
                         </ComboBox>
-                        <Panel Width="120">
-                            <Label Foreground="LightGray" Margin="0 0 10 0" HorizontalAlignment="Right"
-                                   VerticalAlignment="Center"
-                                   Content="AudioCodec:">
-                            </Label>
-                        </Panel>
-                        <ComboBox Width="100">
-                            <ComboBoxItem Content="mp4"></ComboBoxItem><ComboBoxItem Content="mkv"></ComboBoxItem>
-                        </ComboBox>
-                        <Panel Width="120">
-                            <Label Foreground="LightGray" Margin="0 0 10 0" HorizontalAlignment="Right"
-                                   VerticalAlignment="Center"
-                                   Content="Resolution:">
-                            </Label>
-                        </Panel>
-                        <ComboBox Width="150">
-                            <ComboBoxItem Content="mp4"></ComboBoxItem><ComboBoxItem Content="mkv"></ComboBoxItem>
-                        </ComboBox>
+                    </Panel>
 
-                    </StackPanel>
-                    <Panel Height="50">
-                        <TextBox Text="" Margin="0 10 0 10"></TextBox>
-                    </Panel>
+
                 </StackPanel>
             </Border>
         </Panel>
         <Border BorderBrush="Aqua" BorderThickness="2" CornerRadius="13" Padding="10" Margin="4 4 4 0">
             <!-- <Panel Margin="20"  > -->
-            <DataGrid Margin="1" CanUserResizeColumns="True" ItemsSource="{Binding FilesToConvert}"
+            <DataGrid Margin="1" CanUserResizeColumns="True" ItemsSource="{Binding Folders}"
                       AutoGenerateColumns="False" BorderBrush="Aqua">
                 <DataGrid.Columns>
                     <DataGridTemplateColumn IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate DataType="models:VideoFile">
+                            <DataTemplate DataType="models:FolderInfo">
                                 <Label FontWeight="600"
-                                       ToolTip.Tip="{Binding Path=MainVideoConversionState, StringFormat=Video conversion: \{0\}}"
+                                       ToolTip.Tip="{Binding Path=ConvertedState, StringFormat=Video conversion: \{0\}}"
                                        Foreground="{Binding MainProgressColor}" Content="{Binding MainProgressIcon}">
                                 </Label>
                             </DataTemplate>
@@ -121,30 +82,51 @@
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate DataType="models:VideoFile">
+                            <DataTemplate DataType="models:FolderInfo">
                                 <Label
-                                    ToolTip.Tip="{Binding Path=ProxyConversionState, StringFormat=Proxy conversion: \{0\}}"
-                                    Foreground="{Binding ProxyProgressColor}" Content="{Binding ProxyProgressIcon}">
+                                    ToolTip.Tip="{Binding Path=ProxyState, StringFormat=Proxy conversion: \{0\}}"
+                                    Foreground="{Binding  ProxyProgressColor}" Content="{Binding ProxyProgressIcon}">
                                 </Label>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn MinWidth="150" Width="Auto" IsReadOnly="True" Header="Filename"
-                                        Binding="{Binding FileName}"
+                    <DataGridTextColumn MinWidth="150" Width="*" IsReadOnly="True" Header="Folder"
+                                        Binding="{Binding FolderName}"
                                         CanUserResize="True" Foreground="LightGray">
                     </DataGridTextColumn>
-                    <DataGridTextColumn Width="*"
-                                        CanUserResize="True" IsReadOnly="True" Header="Path"
-                                        Binding="{Binding FilePath}"
-                                        Foreground="LightGray">
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Width="105"
-                                        CanUserResize="True" IsReadOnly="True" Header="Progress"
-                                        Foreground="LightGray">
-                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Width="200" Header="Main Conversion">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <!-- <ProgressBar ToolTip.Tip="Current Conversion" Value="30" Maximum="100" Height="2" Margin="0 2 0 4" Foreground="Chartreuse"></ProgressBar> -->
+                                    <ProgressBar ToolTip.Tip="Converted Files" Value="{ Binding ConvertedFiles }"
+                                                 Maximum="{ Binding TotalFiles}" Height="3"
+                                                 Margin="10 10 10 10"
+                                                 >
+                                    </ProgressBar>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Width="200" Header="Proxy Conversion">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <!-- <ProgressBar ToolTip.Tip="Current Conversion" Value="30" Maximum="100" Height="2" Margin="0 2 0 4" Foreground="Chartreuse"></ProgressBar> -->
+                                    <ProgressBar ToolTip.Tip="Converted Files" Value="{ Binding ProxiedFiles }"
+                                                 Maximum="{ Binding TotalFiles}" Height="3"
+                                                 Margin="10 10 10 10"
+                                                 >
+                                    </ProgressBar>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <!-- <DataGridTextColumn Width="105" -->
+                    <!--                     CanUserResize="True" IsReadOnly="True" Header="Progress" -->
+                    <!--                     Foreground="LightGray"> -->
+                    <!-- </DataGridTextColumn> -->
                 </DataGrid.Columns>
-
-
             </DataGrid>
         </Border>
     </DockPanel>

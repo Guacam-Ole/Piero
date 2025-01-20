@@ -10,24 +10,42 @@ namespace Piero.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly ILogger<MainWindowViewModel> _logger;
-    public ObservableCollection<VideoFile> FilesToConvert { get; set; }
+    private readonly Config _config;
+    public ObservableCollection<FolderInfo> Folders { get; set; }
+    public Config Config { get; set; }
 
-    public MainWindowViewModel(ILogger<MainWindowViewModel> logger)
+    public MainWindowViewModel()
+    {
+    }
+
+    public MainWindowViewModel(ILogger<MainWindowViewModel> logger, Config config)
     {
         _logger = logger;
+        Config = config;
 
-        var files = new List<VideoFile>();
-        for (int i = 0; i < 100; i++)
+        var dirs = new List<FolderInfo>();
+
+        for (int u = 0; u < 10; u++)
         {
-            files.Add(new VideoFile
+            var folder = new FolderInfo
             {
-                FileName = $"dummy_{i}.txt", FileDate = DateTime.Now.AddDays(-2),
-                FilePath = "/etc/whatever/you/think/could/be/useful",
-                MainVideoConversionState = (VideoFile.ConversionState) (i%4),
-                ProxyConversionState = VideoFile.ConversionState.Pending,
-            });    
+                FolderName = "/etc/whatever/you/say",
+                FilesToConvert = []
+            };
+            for (int i = 0; i < 100; i++)
+            {
+                folder.FilesToConvert.Add(new VideoFile
+                {
+                    FileName = $"dummy_{i}.txt", FileDate = DateTime.Now.AddDays(-2),
+                    FilePath = "/etc/whatever/you/think/could/be/useful",
+                    MainVideoConversionState = (VideoFile.ConversionState)(i % 4),
+                    ProxyConversionState = VideoFile.ConversionState.Converted,
+                });
+            }
+
+            dirs.Add(folder);
         }
-        
-        FilesToConvert = new ObservableCollection<VideoFile>(files);
+
+        Folders = new ObservableCollection<FolderInfo>(dirs);
     }
 }

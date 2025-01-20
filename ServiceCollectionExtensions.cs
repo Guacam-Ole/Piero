@@ -19,9 +19,6 @@ public static class ServiceCollectionExtensions
             if (!File.Exists(@"config.json")) throw new FileNotFoundException(@"config.json");
             var config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(@"config.json"));
             if (config == null) throw new JsonException("Cannot read config. Something wrong in the format?");
-            if (!ConfigurationValuesComplete(config.FfmpegPath, config.ProxyPath, config.StartupProxy,
-                    config.StartupConversion, config.VideoPath))
-                throw new ArgumentException("At least one of your configuration values is missing.");
             return config;
         }
         catch (Exception e)
@@ -29,11 +26,6 @@ public static class ServiceCollectionExtensions
             Console.WriteLine(e);
             throw;
         }
-    }
-
-    private static bool ConfigurationValuesComplete(params string[] valuesToCheck)
-    {
-        return valuesToCheck.All(value => !string.IsNullOrEmpty(value));
     }
 
     public static void AddServices(this IServiceCollection serviceCollection)
