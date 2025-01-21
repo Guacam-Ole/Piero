@@ -6,22 +6,18 @@ namespace Piero.Models;
 public class Config
 {
     public bool ShowHeader { get; set; } = true;
-    public int ConversionIndex { get; set; } = 1;
-    public int ProxyIndex { get; set; } = 2;
+    public int ConversionIndex { get; set; } 
+    public int ProxyIndex { get; set; } 
     public required string FfmpegPath { get; set; }
     public required string ProxyPath { get; set; }
     public required string VideoPath { get; set; }
+    public List<string> Extensions { get; set; } = [];
     public string LogFile { get; set; } = "piero.log";
     
+
     public List<string> Paths { get; set; } = [];
 
-    public List<FfMpegConfig> FfmpegConfigs { get; set; } =
-    [
-        new("No Conversion", "ffmpeg.exe"),
-        new("4K, DTS 5.1", "ffmpeg.exe"),
-        new("1080p", "ffmpeg.exe"),
-        new("720p", "ffmpeg.exe")
-    ];
+    public List<FfMpegConfig> FfmpegConfigs { get; set; } = [];
 
     public bool AddPath(string path)
     {

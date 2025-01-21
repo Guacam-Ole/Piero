@@ -50,6 +50,7 @@ public class Watcher
         {
             watchers.Add(watcher);
         }
+
         _logger.LogDebug("Now watching '{path}' for changes", pathToWatch);
     }
 
@@ -57,20 +58,16 @@ public class Watcher
     {
         // TODO: Implement
         _logger.LogDebug("Renamed '{old}' to '{new}'", e.OldFullPath, e.FullPath);
-    //    _logger.LogWarning("Renaming is not implemented yet");
     }
 
     private void OnDeleted(object sender, FileSystemEventArgs e)
     {
         _logger.LogDebug("Deleted '{file}''", e.FullPath);
-  //      _logger.LogWarning("Deletion is not implemented yet");
     }
-
 
 
     private void OnCreated(object sender, FileSystemEventArgs e)
     {
         _logger.LogDebug("Created '{file}'", e.FullPath);
-        //_logger.LogWarning("Changes not implemented yet");
     }
 }
