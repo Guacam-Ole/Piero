@@ -1,10 +1,13 @@
+using System;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Piero.Models;
 using Piero.ViewModels;
 using Piero.Views;
 
@@ -12,6 +15,9 @@ namespace Piero;
 
 public partial class App : Application
 {
+    private Watcher? _watcher;
+    private Config? _config;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -21,23 +27,40 @@ public partial class App : Application
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddServices();
-        
-        var services=serviceCollection.BuildServiceProvider();
+
+        var services = serviceCollection.BuildServiceProvider();
         var mainViewModel = services.GetRequiredService<MainWindowViewModel>();
-        
-        
+        _watcher = services.GetRequiredService<Watcher>();
+        _config = services.GetRequiredService<Config>();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
-            desktop.MainWindow = new Proxy
+            var proxy = new Proxy
             {
                 DataContext = mainViewModel
             };
+            proxy.FolderAdded += OnFolderAdded;
+            proxy.Closed += OnProxyClosed;
+            desktop.MainWindow = proxy;
         }
 
+
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void OnProxyClosed(object? sender, EventArgs e)
+    {
+        var jsonConf = JsonConvert.SerializeObject(_config);
+        File.WriteAllText("config.json", jsonConf);
+    }
+
+    private void OnFolderAdded(object? sender, FolderEventArgs e)
+    {
+        if (_config!.AddPath(e.Folder)) return; // already exists
+        _watcher!.AddWatcher(e.Folder);
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

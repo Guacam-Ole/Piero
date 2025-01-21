@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using Avalonia.Media;
 
 namespace Piero.Models;
 
@@ -19,10 +17,4 @@ public class VideoFile
     public ConversionState MainVideoConversionState { get; set; }
     public ConversionState ProxyConversionState { get; set; }
     public DateTime FileDate { get; set; }
-
-
-
-
-
-  
 }

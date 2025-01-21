@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Avalonia.Animation;
 using Microsoft.Extensions.Logging;
 using Piero.Models;
 
@@ -10,7 +9,6 @@ namespace Piero.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly ILogger<MainWindowViewModel> _logger;
-    private readonly Config _config;
     public ObservableCollection<FolderInfo> Folders { get; set; }
     public Config Config { get; set; }
 
@@ -45,6 +43,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             dirs.Add(folder);
         }
+        _logger.LogDebug("UI initialized");
 
         Folders = new ObservableCollection<FolderInfo>(dirs);
     }

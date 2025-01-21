@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
     {
         var config = ReadAndValidateConfiguration();
         serviceCollection.AddSingleton(config);
+        serviceCollection.AddSingleton<Watcher>();
         serviceCollection.AddTransient<MainWindowViewModel>();
         serviceCollection.AddLogging(logging =>
             {

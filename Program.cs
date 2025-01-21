@@ -1,12 +1,5 @@
 ﻿using Avalonia;
 using System;
-using System.IO;
-using System.Linq;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Piero.Models;
-using Piero.ViewModels;
 
 namespace Piero;
 
@@ -22,11 +15,9 @@ sealed class Program
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
+    private static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
-
-  
 }

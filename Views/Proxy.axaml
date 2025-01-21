@@ -20,7 +20,7 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
     <DockPanel>
-        <Panel DockPanel.Dock="Top" Height="40" Margin="0 4 0 0 ">
+        <Panel IsVisible="{Binding Config.ShowHeader}" DockPanel.Dock="Top" Height="40" Margin="0 4 0 0 ">
             <Border Background="Teal" BorderThickness="2" CornerRadius="7" Padding="1" Margin="4 0 4 4">
                 <Label VerticalAlignment="Center" HorizontalAlignment="Center"
                        Content="🥑 Piero: DaVinci Resolve Autoconversion  Proxy Generator 🥑">
@@ -67,7 +67,9 @@
         <Panel DockPanel.Dock="Bottom" Height="35" Margin="5 5 5 5 ">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button IsEnabled="True" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
-                        BorderBrush="Aqua" Foreground="Aqua">
+                        BorderBrush="Aqua" Foreground="Aqua"
+                        Click="AddFolder_Click"
+                        >
                     <Label HorizontalAlignment="Center">Add Folder</Label>
                 </Button>
                 <Button IsEnabled="False" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"

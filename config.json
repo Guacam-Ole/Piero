@@ -3,5 +3,10 @@
   "StartupProxy":"whatever",
   "FfmpegPath":"ffmpeg",
   "ProxyPath":"whatever",
-  "VideoPath":"./piero" // relative paths will create directories relative to video files
+  "VideoPath":"./piero", // relative paths will create directories relative to video files
+  "ShowHeader": true,
+  "Paths": [
+    "/home/guacamole/Videos",
+    "/home/guacamole/Pictures"
+  ]
 }
