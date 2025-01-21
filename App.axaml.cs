@@ -63,18 +63,38 @@ public partial class App : Application
 
     private async void OnFolderAdded(object? sender, FolderEventArgs e)
     {
-        var conversionTasks=new List<Task>();
-        if (!_config!.AddPath(e.Folder)) return; // already exists
-        _watcher!.AddWatcher(e.Folder);
-        foreach (var file in new DirectoryInfo(e.Folder).GetFiles())
+        try
         {
-            if (file.Extension==".mp4")
+            var conversionTasks=new List<Task>();
+            if (!_config!.AddPath(e.Folder)) return; // already exists
+            _watcher!.AddWatcher(e.Folder);
+            foreach (var file in new DirectoryInfo(e.Folder).GetFiles())
             {
-               conversionTasks.Add(_converter!.StartConversion(e.Folder, _config.VideoPath, file.FullName,
-                    _config.FfmpegConfigs[_config.ConversionIndex].Command));
+                if (_config.Extensions.Contains(file.Extension))
+                {
+                    var task = _converter!.StartConversion(e.Folder, _config.VideoPath, file.FullName,
+                        _config.FfmpegConfigs[_config.ConversionIndex].Command);
+                
+                    if (!_config.FfMpegParallelConversion)
+                    {
+                        await task;
+                    }
+                    else
+                    {
+                        conversionTasks.Add(task);
+                    }
+                }
+            }
+
+            if (_config.FfMpegParallelConversion)
+            {
+                await Task.WhenAll(conversionTasks);
             }
         }
-        await Task.WhenAll(conversionTasks);
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed converting folder, {ex}");
+        }
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

@@ -1,22 +1,14 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using Piero.Models;
 
 namespace Piero.Views;
 
 public partial class Proxy : Window
 {
     public EventHandler<FolderEventArgs> FolderAdded;
-    public EventHandler ConfigSaveHandler;
-
-    protected override void OnClosing(WindowClosingEventArgs e)
-    {
-        ConfigSaveHandler?.Invoke(this, EventArgs.Empty);
-    }
 
     public Proxy()
     {
@@ -25,19 +17,18 @@ public partial class Proxy : Window
 
     private async void AddFolder_Click(object? sender, RoutedEventArgs e)
     {
-        var topLevel = TopLevel.GetTopLevel(this);
-        var folder = await topLevel.StorageProvider.OpenFolderPickerAsync( new FolderPickerOpenOptions
-                {
-                    AllowMultiple = false, Title = "Select Folder" 
-                }
-        
+        var topLevel = GetTopLevel(this) ?? throw new Exception("Error receiving root");
+        var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions
+            {
+                AllowMultiple = false, Title = "Select Folder to watch for movies"
+            }
         );
-        
-        if (folder.Any())
+
+        var selectedFolder=folders.ToList().FirstOrDefault();
+        if (selectedFolder != null)
         {
-            FolderAdded?.Invoke(sender, new FolderEventArgs(folder.First().Path.AbsolutePath) { });
+            FolderAdded?.Invoke(sender, new FolderEventArgs(selectedFolder.Path.AbsolutePath) { });
         }
     }
-
-
 }

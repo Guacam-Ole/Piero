@@ -1,15 +1,14 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Piero;
 
 public class Watcher
 {
-    private object _watcherLock = new object();
+    private readonly object _watcherLock = new();
     private readonly ILogger<Watcher> _logger;
-    private List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
+    private List<FileSystemWatcher> _watchers = [];
 
     public Watcher(ILogger<Watcher> logger)
     {
@@ -20,7 +19,7 @@ public class Watcher
     {
         lock (_watcherLock)
         {
-            watchers = [];
+            _watchers = [];
         }
 
         foreach (var path in pathsToWatch)
@@ -48,7 +47,7 @@ public class Watcher
 
         lock (_watcherLock)
         {
-            watchers.Add(watcher);
+            _watchers.Add(watcher);
         }
 
         _logger.LogDebug("Now watching '{path}' for changes", pathToWatch);
@@ -62,12 +61,14 @@ public class Watcher
 
     private void OnDeleted(object sender, FileSystemEventArgs e)
     {
+        // TODO: Implement
         _logger.LogDebug("Deleted '{file}''", e.FullPath);
     }
 
 
     private void OnCreated(object sender, FileSystemEventArgs e)
     {
+        // TODO: Implement
         _logger.LogDebug("Created '{file}'", e.FullPath);
     }
 }

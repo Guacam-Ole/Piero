@@ -8,15 +8,15 @@
   "Paths": [
   ],
   "Extensions": [
-    "mp4",
-    "mpeg",
-    "mkv",
-    "mov",
-    "webm",
-    "avi",
-    "wmv",
-    "ogg",
-    "flv"
+    ".mp4",
+    ".mpeg",
+    ".mkv",
+    ".mov",
+    ".webm",
+    ".avi",
+    ".wmv",
+    ".ogg",
+    ".flv"
   ],
   "FfMpegConfigs": [
     {

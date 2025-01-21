@@ -13,9 +13,10 @@ public class Config
     public required string VideoPath { get; set; }
     public List<string> Extensions { get; set; } = [];
     public string LogFile { get; set; } = "piero.log";
-    
+    public bool FfMpegParallelConversion { get; set; } = false;
 
     public List<string> Paths { get; set; } = [];
+    public string FfmpegPrefix { get; set; } = "-y -loglevel info -hide_banner -stats";
 
     public List<FfMpegConfig> FfmpegConfigs { get; set; } = [];
 
