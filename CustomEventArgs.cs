@@ -2,24 +2,26 @@ using System;
 
 namespace Piero;
 
-public class FolderEventArgs:EventArgs
+public class FolderEventArgs : EventArgs
 {
     public FolderEventArgs(string folder)
     {
         Folder = folder;
     }
+
     public string Folder { get; set; }
 }
 
-public class FfmpegEventArgs:EventArgs
+public class FfmpegEventArgs : EventArgs
 {
-    public FfmpegEventArgs(int id, TimeSpan duration, int percentage)
+    public Converter.ConversionInfo ConversionInfo { get; set; }
+        public int Progress { get; set; }
+        public bool IsFinished { get; set; }
+    
+    public FfmpegEventArgs(Converter.ConversionInfo conversionInfo, int progress)
     {
-        Id = id;
-        Duration = duration;
-        Percentage = percentage;
+        ConversionInfo = conversionInfo;
+        Progress = progress;
+        IsFinished = progress == 100;
     }
-    public int Id { get; set; }
-    public TimeSpan Duration { get; set; }
-    public int Percentage { get; set; }
 }

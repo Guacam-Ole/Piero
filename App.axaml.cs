@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Piero.Models;
 using Piero.ViewModels;
@@ -18,8 +20,13 @@ namespace Piero;
 public partial class App : Application
 {
     private Watcher? _watcher;
-    private Config? _config;
+    private Config _config;
     private Converter _converter;
+    private MainWindowViewModel _mainViewModel;
+    private ILogger<App> _logger;
+    private List<FolderInfo> _queue;
+    private bool _queueIsProcessing = false;
+
 
     public override void Initialize()
     {
@@ -32,10 +39,12 @@ public partial class App : Application
         serviceCollection.AddServices();
 
         var services = serviceCollection.BuildServiceProvider();
-        var mainViewModel = services.GetRequiredService<MainWindowViewModel>();
+        _mainViewModel = services.GetRequiredService<MainWindowViewModel>();
         _watcher = services.GetRequiredService<Watcher>();
         _config = services.GetRequiredService<Config>();
-        _converter=services.GetRequiredService<Converter>();
+        _converter = services.GetRequiredService<Converter>();
+        _converter.ProgressChanged += ProcessChanged;
+        _logger = services.GetRequiredService<ILogger<App>>();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -44,7 +53,7 @@ public partial class App : Application
             DisableAvaloniaDataAnnotationValidation();
             var proxy = new Proxy
             {
-                DataContext = mainViewModel
+                DataContext = _mainViewModel
             };
             proxy.FolderAdded += OnFolderAdded;
             proxy.Closed += OnProxyClosed;
@@ -55,46 +64,173 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
+    private void ProcessChanged(object? sender, FfmpegEventArgs e)
+    {
+        if (e.IsFinished)
+        {
+        }
+
+        throw new NotImplementedException();
+    }
+
     private void OnProxyClosed(object? sender, EventArgs e)
     {
         var jsonConf = JsonConvert.SerializeObject(_config);
         File.WriteAllText("config.json", jsonConf);
     }
 
-    private async void OnFolderAdded(object? sender, FolderEventArgs e)
+    private void AddFolderToQueue(string folder)
     {
-        try
+        if (!_config!.AddPath(folder))
         {
-            var conversionTasks=new List<Task>();
-            if (!_config!.AddPath(e.Folder)) return; // already exists
-            _watcher!.AddWatcher(e.Folder);
-            foreach (var file in new DirectoryInfo(e.Folder).GetFiles())
+            // TODO: Show MessageBox
+            _logger.LogInformation("'{folder}' has already been added", folder);
+            return;
+        }
+
+        var folderConf = _queue.FirstOrDefault(f => f.FolderName == folder);
+        if (folderConf == null)
+        {
+            folderConf = new FolderInfo
             {
-                if (_config.Extensions.Contains(file.Extension))
-                {
-                    var task = _converter!.StartConversion(e.Folder, _config.VideoPath, file.FullName,
-                        _config.FfmpegConfigs[_config.ConversionIndex].Command);
-                
-                    if (!_config.FfMpegParallelConversion)
-                    {
-                        await task;
-                    }
-                    else
-                    {
-                        conversionTasks.Add(task);
-                    }
-                }
+                FolderName = folder,
+                FilesToConvert = []
+            };
+            _queue.Add(folderConf);
+        }
+
+        foreach (var file in new DirectoryInfo(folder).GetFiles())
+        {
+            if (!_config.Extensions.Contains(file.Extension) ||
+                folderConf.FilesToConvert.Any(f => f.FullName == file.FullName)) continue;
+
+            folderConf.FilesToConvert.Add(new VideoFile
+            {
+                FullName = file.FullName,
+                ProxyConversionState =
+                    Converter.TargetExists(file.FullName, _config.ProxyPath)
+                        ? VideoFile.ConversionState.Converted
+                        : VideoFile.ConversionState.Pending,
+                MainVideoConversionState =
+                    Converter.TargetExists(file.FullName, _config.VideoPath)
+                        ? VideoFile.ConversionState.Converted
+                        : VideoFile.ConversionState.Pending
+            });
+
+            _logger.LogDebug("Added '{file}' to queue", file.FullName);
+            UpdateViewModel();
+        }
+    }
+
+    private void UpdateViewModel()
+    {
+        _mainViewModel.RefreshData(_queue);
+    }
+
+    private async Task ProcessQueue()
+    {
+        if (_queueIsProcessing)
+        {
+            _logger.LogDebug("Queue is already being processed");
+            return;
+        }
+
+        bool queueHasEntries = true;
+        while (queueHasEntries)
+        {
+            _queueIsProcessing = true;
+            var pendingMainConversionFolders = _queue.Where(q =>
+                q.FilesToConvert.Any(f => f.MainVideoConversionState == VideoFile.ConversionState.Pending));
+            var pendingProxyConversionFolders = _queue.Where(q =>
+                q.FilesToConvert.Any(f => f.ProxyConversionState == VideoFile.ConversionState.Pending));
+
+            var mainFilesToConvert = pendingMainConversionFolders.SelectMany(q =>
+                q.FilesToConvert.Where(f => f.MainVideoConversionState == VideoFile.ConversionState.Pending)).ToList();
+            var proxyFilesToConvert = pendingProxyConversionFolders.SelectMany(q =>
+                q.FilesToConvert.Where(f => f.ProxyConversionState == VideoFile.ConversionState.Pending)).ToList();
+            if (mainFilesToConvert.Count == 0 && proxyFilesToConvert.Count == 0) queueHasEntries = false;
+
+
+            foreach (var folder in pendingMainConversionFolders)
+            {
+                await ConvertFolder(folder, true);
             }
 
-            if (_config.FfMpegParallelConversion)
+
+            foreach (var file in mainFilesToConvert)
             {
-                await Task.WhenAll(conversionTasks);
             }
         }
-        catch (Exception ex)
+    }
+
+    private async Task ConvertFolder(FolderInfo folder, bool mainVideo)
+    {
+        var filesToConvert =
+            (mainVideo
+                ? folder.FilesToConvert.Where(q => q.MainVideoConversionState == VideoFile.ConversionState.Pending)
+                : folder.FilesToConvert.Where(q => q.ProxyConversionState == VideoFile.ConversionState.Pending)
+            ).ToList();
+
+        _logger.LogDebug("Converting {Count} {type} files in '{Folder}", filesToConvert.Count,
+            mainVideo ? "main" : "proxy", folder.FolderName);
+
+        List<Task<bool>> conversionTasks = [];
+
+        foreach (var file in filesToConvert)
         {
-            Console.WriteLine($"Failed converting folder, {ex}");
+            var task = _converter!.StartConversion(folder.FolderName, file,
+                _config.FfmpegConfigs[mainVideo ? _config.ConversionIndex : _config.ProxyIndex].Command, mainVideo);
+            if (!_config.FfMpegParallelConversion)
+            {
+                await task;
+            }
+            else
+            {
+                conversionTasks.Add(task);
+            }
         }
+
+        if (_config.FfMpegParallelConversion)
+        {
+            await Task.WhenAll(conversionTasks);
+        }
+    }
+
+    private async void OnFolderAdded(object? sender, FolderEventArgs e)
+    {
+        AddFolderToQueue(e.Folder);
+
+        // try
+        // {
+        //     var conversionTasks = new List<Task>();
+        //
+        //     _watcher!.AddWatcher(e.Folder);
+        //     foreach (var file in new DirectoryInfo(e.Folder).GetFiles())
+        //     {
+        //         if (_config.Extensions.Contains(file.Extension))
+        //         {
+        //             var task = _converter!.StartConversion(e.Folder, file,
+        //                 _config.FfmpegConfigs[_config.ConversionIndex].Command);
+        //
+        //             if (!_config.FfMpegParallelConversion)
+        //             {
+        //                 await task;
+        //             }
+        //             else
+        //             {
+        //                 conversionTasks.Add(task);
+        //             }
+        //         }
+        //     }
+        //
+        //     if (_config.FfMpegParallelConversion)
+        //     {
+        //     }
+        // }
+        // catch (Exception ex)
+        // {
+        //     Console.WriteLine($"Failed converting folder, {ex}");
+        //}
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

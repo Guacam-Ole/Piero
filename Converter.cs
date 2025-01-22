@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Piero.Models;
@@ -14,8 +15,7 @@ public class Converter
     public EventHandler<FfmpegEventArgs> ProgressChanged;
     private readonly ILogger<Converter> _logger;
     private readonly Config _config;
-    private readonly Dictionary<int, TimeSpan> _durations = new();
-    private readonly Dictionary<int, TimeSpan> _positions = new();
+    private readonly List<ConversionInfo> _runningConversions = [];
 
 
     public Converter(ILogger<Converter> logger, Config config)
@@ -24,9 +24,18 @@ public class Converter
         _config = config;
     }
 
-    public async Task StartConversion(string sourceDirectory, string targetDirectory, string sourceFilename,
-        string command)
+    public static bool TargetExists(string sourceFilename, string targetDirectory)
     {
+        var filenameWithoutExtension = Path.GetFileNameWithoutExtension(sourceFilename);
+        var targetFile = Path.Combine(targetDirectory, filenameWithoutExtension);
+        return File.Exists(targetFile);
+    }
+
+    public async Task<bool> StartConversion(string sourceDirectory, VideoFile fileToConvert,
+        string command, bool isMainConversion)
+    {
+        var targetDirectory = isMainConversion ? _config.VideoPath : _config.ProxyPath;
+        var sourceFilename = fileToConvert.FullName;
         if (targetDirectory.StartsWith("./")) targetDirectory = Path.Combine(sourceDirectory, targetDirectory);
         try
         {
@@ -35,10 +44,19 @@ public class Converter
             var sourceFile = Path.Combine(sourceDirectory, sourceFilename);
 
             var conversionParameters = command.Replace("[INPUT]", sourceFile)
-                .Replace("[OUTPUT}", Path.Combine(targetDirectory, filenameWithoutExtension));
+                .Replace("[OUTPUT]", Path.Combine(targetDirectory, filenameWithoutExtension));
 
             conversionParameters = $"{_config.FfmpegPrefix} {conversionParameters}";
             using var ffmpegProcess = new Process();
+            lock (_processLock)
+            {
+                _runningConversions.Add(new ConversionInfo
+                {
+                    IsMainConversion = isMainConversion,
+                    VideoFile = fileToConvert,
+                    Id = ffmpegProcess.Id
+                });
+            }
             ffmpegProcess.StartInfo.UseShellExecute = false;
             ffmpegProcess.StartInfo.CreateNoWindow = true;
             ffmpegProcess.StartInfo.RedirectStandardOutput = true;
@@ -52,11 +70,40 @@ public class Converter
             ffmpegProcess.Start();
             ffmpegProcess.BeginErrorReadLine();
 
+
             await ffmpegProcess.WaitForExitAsync();
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Cannot create directory '{directory}'. Aborting Conversion", targetDirectory);
+            return false;
+        }
+    }
+
+    private ConversionInfo GetConversionInfo(int id)
+    {
+        lock (_processLock)
+        {
+            return _runningConversions.First(q => q.Id == id);
+        }
+    }
+
+    private void RemoveConversionInfo(int id)
+    {
+        lock (_processLock)
+        {
+            _runningConversions.RemoveAll(q => q.Id == id);
+        }
+    }
+
+    private void UpdateConversionState(ConversionInfo info)
+    {
+        lock (_processLock)
+        {
+            var conversion = _runningConversions.First(q => q.Id == info.Id);
+            conversion.Duration = info.Duration;
+            conversion.Position = info.Position;
         }
     }
 
@@ -75,67 +122,68 @@ public class Converter
 
     private TimeSpan? GetDuration(int id, string ffmpegOutput)
     {
-        lock (_processLock)
-        {
-            if (_durations.ContainsKey(id)) return null; // Already received
-            if (!ffmpegOutput.StartsWith("Duration:")) return null;
-            var lengthStart = "Duration:".Length + 1;
-            if (lengthStart < 0) return null;
-            var lengthEnd = ffmpegOutput.IndexOf(',', lengthStart);
-            if (lengthEnd < 0) return null;
-            var lengthCaption = ffmpegOutput.Substring(lengthStart, lengthEnd - lengthStart).Trim();
+        var conversionInfo = GetConversionInfo(id);
+        if (conversionInfo.Duration != TimeSpan.Zero) return null; // Already received
+        if (!ffmpegOutput.StartsWith("Duration:")) return null;
+        var lengthStart = "Duration:".Length + 1;
+        if (lengthStart < 0) return null;
+        var lengthEnd = ffmpegOutput.IndexOf(',', lengthStart);
+        if (lengthEnd < 0) return null;
+        var lengthCaption = ffmpegOutput.Substring(lengthStart, lengthEnd - lengthStart).Trim();
 
-            if (!TimeSpan.TryParse(lengthCaption, out var duration)) return null;
-            _durations[id] = duration;
-            return duration;
-        }
+        if (!TimeSpan.TryParse(lengthCaption, out var duration)) return null;
+        conversionInfo.Duration = duration;
+        UpdateConversionState(conversionInfo);
+        return duration;
     }
 
     private TimeSpan? GetPosition(int id, string ffmpegOutput)
     {
-        lock (_processLock)
-        {
-            var timeStart = ffmpegOutput.IndexOf("time=", StringComparison.Ordinal);
-            if (timeStart < 0) return null;
-            timeStart += "time=".Length + 1;
-            var timeEnd = ffmpegOutput.IndexOf(' ', timeStart + 1);
-            if (timeEnd < 0) return null;
-            var timeCaption = ffmpegOutput.Substring(timeStart, timeEnd - timeStart - 1).Trim();
+        var timeStart = ffmpegOutput.IndexOf("time=", StringComparison.Ordinal);
+        if (timeStart < 0) return null;
+        timeStart += "time=".Length + 1;
+        var timeEnd = ffmpegOutput.IndexOf(' ', timeStart + 1);
+        if (timeEnd < 0) return null;
+        var timeCaption = ffmpegOutput.Substring(timeStart, timeEnd - timeStart - 1).Trim();
 
-            if (!TimeSpan.TryParse(timeCaption, out var position)) return null;
-            _positions[id] = position;
-            return position;
-        }
+        if (!TimeSpan.TryParse(timeCaption, out var position)) return null;
+        var conversionInfo = GetConversionInfo(id);
+        conversionInfo.Position = position;
+        UpdateConversionState(conversionInfo);
+        return position;
     }
 
     private double CalculateProgress(int id)
     {
+        var conversionInfo = GetConversionInfo(id);
         TimeSpan duration;
         TimeSpan position;
-        lock (_processLock)
-        {
-            if (!_durations.TryGetValue(id, out  duration) ||
-                !_positions.TryGetValue(id, out  position)) return 0;
-        }
+        if (conversionInfo.Duration == TimeSpan.Zero || conversionInfo.Position == TimeSpan.Zero) return 0;
 
-        if (position > duration) return 100;
-            if (duration.TotalSeconds == 0) return 0;
-            var newProgress = position.TotalSeconds * 100 / duration.TotalSeconds;
-        
+        if (conversionInfo.Position > conversionInfo.Duration) return 100;
+        if (conversionInfo.Duration.TotalSeconds == 0) return 0;
+        var newProgress = conversionInfo.Position.TotalSeconds * 100 / conversionInfo.Duration.TotalSeconds;
 
-        ProgressChanged?.Invoke(this, new FfmpegEventArgs(id, _positions[id], (int)newProgress));
+        ProgressChanged?.Invoke(this, new FfmpegEventArgs(conversionInfo, (int)newProgress));
         return newProgress;
     }
 
     private void FfmpegProcessOnExited(object? sender, EventArgs e)
     {
         var process = (Process)sender!;
-        lock (_processLock)
-        {
-            _positions.Remove(process.Id);
-            _durations.Remove(process.Id);
-        }
+        var conversionInfo = GetConversionInfo(process.Id);
+        ProgressChanged?.Invoke(this, new FfmpegEventArgs(conversionInfo, 100));
+        RemoveConversionInfo(process.Id);
 
         _logger.LogInformation("Conversion finished");
+    }
+
+    public class ConversionInfo
+    {
+        public int Id { get; set; }
+        public TimeSpan Duration { get; set; }
+        public TimeSpan Position { get; set; }
+        public VideoFile VideoFile { get; set; }=new ();
+        public bool IsMainConversion { get; set; }
     }
 }

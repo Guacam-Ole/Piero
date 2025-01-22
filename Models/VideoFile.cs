@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace Piero.Models;
 
@@ -12,9 +13,9 @@ public class VideoFile
         Error
     }
 
-    public string FileName { get; set; }
-    public string FilePath { get; set; }
+    public string FullName { get; set; }
     public ConversionState MainVideoConversionState { get; set; }
     public ConversionState ProxyConversionState { get; set; }
-    public DateTime FileDate { get; set; }
+    public int MainProgress { get; set; }
+    public int ProxyProgress { get; set; }
 }

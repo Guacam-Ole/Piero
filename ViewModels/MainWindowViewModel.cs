@@ -9,11 +9,16 @@ namespace Piero.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly ILogger<MainWindowViewModel> _logger;
-    public ObservableCollection<FolderInfo> Folders { get; set; }
+    private ObservableCollection<FolderInfo> Folders { get; set; }
     public Config Config { get; set; }
 
     public MainWindowViewModel()
     {
+    }
+
+    public void RefreshData(List<FolderInfo> folderInfo)
+    {
+        Folders = new ObservableCollection<FolderInfo>(folderInfo);
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger, Config config)
@@ -34,8 +39,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 folder.FilesToConvert.Add(new VideoFile
                 {
-                    FileName = $"dummy_{i}.txt", FileDate = DateTime.Now.AddDays(-2),
-                    FilePath = "/etc/whatever/you/think/could/be/useful",
+                    FullName = $"/etc/whatever/you/think/could/be/useful/dummy_{i}.txt",
                     MainVideoConversionState = (VideoFile.ConversionState)(u % 4),
                     ProxyConversionState = VideoFile.ConversionState.Converted,
                 });

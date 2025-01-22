@@ -6,8 +6,6 @@ namespace Piero.Models;
 
 public class FolderInfo
 {
-   
-
     public VideoFile.ConversionState ProxyState
     {
         get
@@ -41,10 +39,7 @@ public class FolderInfo
     public string FolderName { get; set; }
 
 
-    public int TotalFiles
-    {
-        get { return FilesToConvert.Count; }
-    }
+    public int TotalFiles => FilesToConvert.Count;
 
     public int ConvertedFiles
     {
