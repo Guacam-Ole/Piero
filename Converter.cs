@@ -185,5 +185,6 @@ public class Converter
         public TimeSpan Position { get; set; }
         public VideoFile VideoFile { get; set; }=new ();
         public bool IsMainConversion { get; set; }
+        public string FolderName { get; set; }
     }
 }

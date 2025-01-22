@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Piero.Models;
 
@@ -19,6 +20,16 @@ public partial class MainWindowViewModel : ViewModelBase
     public void RefreshData(List<FolderInfo> folderInfo)
     {
         Folders = new ObservableCollection<FolderInfo>(folderInfo);
+    }
+
+    public void RefreshSingleItem(string folderName, VideoFile fileInfo)
+    {
+        var file = Folders.First(f => f.FolderName == folderName).FilesToConvert
+            .First(f => f.FullName == fileInfo.FullName);
+        file.ProxyConversionState = fileInfo.ProxyConversionState;
+        file.ProxyProgress = fileInfo.ProxyProgress;
+        file.MainVideoConversionState = fileInfo.MainVideoConversionState;
+        file.MainProgress = fileInfo.MainProgress;
     }
 
     public MainWindowViewModel(ILogger<MainWindowViewModel> logger, Config config)
@@ -47,6 +58,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             dirs.Add(folder);
         }
+
         _logger.LogDebug("UI initialized");
 
         Folders = new ObservableCollection<FolderInfo>(dirs);

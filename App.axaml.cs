@@ -66,11 +66,30 @@ public partial class App : Application
 
     private void ProcessChanged(object? sender, FfmpegEventArgs e)
     {
+        var matchingFolder = _queue.First(q => q.FolderName == e.ConversionInfo.FolderName);
+        var matchingFile = matchingFolder.FilesToConvert.First(f => f.FullName == e.ConversionInfo.VideoFile.FullName);
         if (e.IsFinished)
         {
+            if (e.ConversionInfo.IsMainConversion)
+            {
+                matchingFile.MainVideoConversionState = VideoFile.ConversionState.Converted;
+            }
+            else
+            {
+                matchingFile.ProxyConversionState = VideoFile.ConversionState.Converted;
+            }
         }
 
-        throw new NotImplementedException();
+        if (e.ConversionInfo.IsMainConversion)
+        {
+            matchingFile.MainProgress = e.Progress;
+        }
+        else
+        {
+            matchingFile.ProxyProgress = e.Progress;
+        }
+
+        UpdateFileInfo(matchingFolder.FolderName, matchingFile);
     }
 
     private void OnProxyClosed(object? sender, EventArgs e)
@@ -135,14 +154,15 @@ public partial class App : Application
             return;
         }
 
-        bool queueHasEntries = true;
+        var queueHasEntries = true;
         while (queueHasEntries)
         {
+            _logger.LogDebug("Start processing Queue");
             _queueIsProcessing = true;
             var pendingMainConversionFolders = _queue.Where(q =>
-                q.FilesToConvert.Any(f => f.MainVideoConversionState == VideoFile.ConversionState.Pending));
+                q.FilesToConvert.Any(f => f.MainVideoConversionState == VideoFile.ConversionState.Pending)).ToList();
             var pendingProxyConversionFolders = _queue.Where(q =>
-                q.FilesToConvert.Any(f => f.ProxyConversionState == VideoFile.ConversionState.Pending));
+                q.FilesToConvert.Any(f => f.ProxyConversionState == VideoFile.ConversionState.Pending)).ToList();
 
             var mainFilesToConvert = pendingMainConversionFolders.SelectMany(q =>
                 q.FilesToConvert.Where(f => f.MainVideoConversionState == VideoFile.ConversionState.Pending)).ToList();
@@ -150,17 +170,21 @@ public partial class App : Application
                 q.FilesToConvert.Where(f => f.ProxyConversionState == VideoFile.ConversionState.Pending)).ToList();
             if (mainFilesToConvert.Count == 0 && proxyFilesToConvert.Count == 0) queueHasEntries = false;
 
+            _logger.LogDebug("Converting {count} main Video Files", mainFilesToConvert.Count);
 
             foreach (var folder in pendingMainConversionFolders)
             {
                 await ConvertFolder(folder, true);
             }
 
-
-            foreach (var file in mainFilesToConvert)
+            _logger.LogDebug("Converting {count} Proxy Files", proxyFilesToConvert.Count);
+            foreach (var folder in pendingProxyConversionFolders)
             {
+                await ConvertFolder(folder, false);
             }
         }
+        
+        _logger.LogDebug("Finished processing Queue");
     }
 
     private async Task ConvertFolder(FolderInfo folder, bool mainVideo)
@@ -180,6 +204,20 @@ public partial class App : Application
         {
             var task = _converter!.StartConversion(folder.FolderName, file,
                 _config.FfmpegConfigs[mainVideo ? _config.ConversionIndex : _config.ProxyIndex].Command, mainVideo);
+            if (mainVideo)
+            {
+                file.MainVideoConversionState = VideoFile.ConversionState.Converting;
+                file.MainProgress = 0;
+            }
+            else
+            {
+                file.ProxyConversionState = VideoFile.ConversionState.Converting;
+                file.ProxyProgress = 0;
+            }
+            UpdateFileInfo(folder.FolderName, file);
+
+            _mainViewModel.RefreshSingleItem(folder.FolderName, file);
+            
             if (!_config.FfMpegParallelConversion)
             {
                 await task;
@@ -188,6 +226,7 @@ public partial class App : Application
             {
                 conversionTasks.Add(task);
             }
+            
         }
 
         if (_config.FfMpegParallelConversion)
@@ -196,41 +235,15 @@ public partial class App : Application
         }
     }
 
+    private void UpdateFileInfo(string folderName, VideoFile file)
+    {
+        _mainViewModel.RefreshSingleItem(folderName, file);
+    }
+
     private async void OnFolderAdded(object? sender, FolderEventArgs e)
     {
         AddFolderToQueue(e.Folder);
-
-        // try
-        // {
-        //     var conversionTasks = new List<Task>();
-        //
-        //     _watcher!.AddWatcher(e.Folder);
-        //     foreach (var file in new DirectoryInfo(e.Folder).GetFiles())
-        //     {
-        //         if (_config.Extensions.Contains(file.Extension))
-        //         {
-        //             var task = _converter!.StartConversion(e.Folder, file,
-        //                 _config.FfmpegConfigs[_config.ConversionIndex].Command);
-        //
-        //             if (!_config.FfMpegParallelConversion)
-        //             {
-        //                 await task;
-        //             }
-        //             else
-        //             {
-        //                 conversionTasks.Add(task);
-        //             }
-        //         }
-        //     }
-        //
-        //     if (_config.FfMpegParallelConversion)
-        //     {
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     Console.WriteLine($"Failed converting folder, {ex}");
-        //}
+        await ProcessQueue();
     }
 
     private void DisableAvaloniaDataAnnotationValidation()
