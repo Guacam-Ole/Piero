@@ -16,7 +16,7 @@ public class Converter
     private readonly ILogger<Converter> _logger;
     private readonly Config _config;
     private readonly List<ConversionInfo> _runningConversions = [];
-
+    
 
     public Converter(ILogger<Converter> logger, Config config)
     {
@@ -47,16 +47,8 @@ public class Converter
                 .Replace("[OUTPUT]", Path.Combine(targetDirectory, filenameWithoutExtension));
 
             conversionParameters = $"{_config.FfmpegPrefix} {conversionParameters}";
-            using var ffmpegProcess = new Process();
-            lock (_processLock)
-            {
-                _runningConversions.Add(new ConversionInfo
-                {
-                    IsMainConversion = isMainConversion,
-                    VideoFile = fileToConvert,
-                    Id = ffmpegProcess.Id
-                });
-            }
+            var ffmpegProcess = new Process();
+
             ffmpegProcess.StartInfo.UseShellExecute = false;
             ffmpegProcess.StartInfo.CreateNoWindow = true;
             ffmpegProcess.StartInfo.RedirectStandardOutput = true;
@@ -69,14 +61,24 @@ public class Converter
             ffmpegProcess.ErrorDataReceived += FfmpegProcessOnErrorDataReceived;
             ffmpegProcess.Start();
             ffmpegProcess.BeginErrorReadLine();
-
+            var id = ffmpegProcess.Id;
+            lock (_processLock)
+            {
+                _runningConversions.Add(new ConversionInfo
+                {
+                    IsMainConversion = isMainConversion,
+                    VideoFile = fileToConvert, 
+                    FolderName = sourceDirectory,
+                    Id = id
+                });
+            }
 
             await ffmpegProcess.WaitForExitAsync();
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Cannot create directory '{directory}'. Aborting Conversion", targetDirectory);
+            _logger.LogError(ex, "Cannot convert to '{directory}'. Aborting Conversion", targetDirectory);
             return false;
         }
     }

@@ -24,7 +24,7 @@ public partial class App : Application
     private Converter _converter;
     private MainWindowViewModel _mainViewModel;
     private ILogger<App> _logger;
-    private List<FolderInfo> _queue;
+    private List<FolderInfo> _queue = [];
     private bool _queueIsProcessing = false;
 
 
@@ -157,6 +157,7 @@ public partial class App : Application
         var queueHasEntries = true;
         while (queueHasEntries)
         {
+            _queueIsProcessing = true;
             _logger.LogDebug("Start processing Queue");
             _queueIsProcessing = true;
             var pendingMainConversionFolders = _queue.Where(q =>
@@ -183,7 +184,8 @@ public partial class App : Application
                 await ConvertFolder(folder, false);
             }
         }
-        
+
+        _queueIsProcessing = false;
         _logger.LogDebug("Finished processing Queue");
     }
 

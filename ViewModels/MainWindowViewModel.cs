@@ -10,7 +10,7 @@ namespace Piero.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly ILogger<MainWindowViewModel> _logger;
-    private ObservableCollection<FolderInfo> Folders { get; set; }
+    public ObservableCollection<FolderInfo> Folders { get; set; }
     public Config Config { get; set; }
 
     public MainWindowViewModel()
