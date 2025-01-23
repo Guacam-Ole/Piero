@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Piero.Models;
 
 public class Config
 {
     public bool ShowHeader { get; set; } = true;
+    public bool ShowFooter { get; set; } = true;
     public int ConversionIndex { get; set; } 
     public int ProxyIndex { get; set; } 
     public required string FfmpegPath { get; set; }

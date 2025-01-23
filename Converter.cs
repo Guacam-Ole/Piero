@@ -83,11 +83,11 @@ public class Converter
         }
     }
 
-    private ConversionInfo GetConversionInfo(int id)
+    private ConversionInfo? GetConversionInfo(int id)
     {
         lock (_processLock)
         {
-            return _runningConversions.First(q => q.Id == id);
+            return _runningConversions.FirstOrDefault(q => q.Id == id);
         }
     }
 
@@ -125,6 +125,7 @@ public class Converter
     private TimeSpan? GetDuration(int id, string ffmpegOutput)
     {
         var conversionInfo = GetConversionInfo(id);
+        if (conversionInfo == null) return null;
         if (conversionInfo.Duration != TimeSpan.Zero) return null; // Already received
         if (!ffmpegOutput.StartsWith("Duration:")) return null;
         var lengthStart = "Duration:".Length + 1;
@@ -150,6 +151,7 @@ public class Converter
 
         if (!TimeSpan.TryParse(timeCaption, out var position)) return null;
         var conversionInfo = GetConversionInfo(id);
+        if (conversionInfo == null) return position;
         conversionInfo.Position = position;
         UpdateConversionState(conversionInfo);
         return position;
@@ -158,6 +160,7 @@ public class Converter
     private double CalculateProgress(int id)
     {
         var conversionInfo = GetConversionInfo(id);
+        if (conversionInfo == null) return 0;
         TimeSpan duration;
         TimeSpan position;
         if (conversionInfo.Duration == TimeSpan.Zero || conversionInfo.Position == TimeSpan.Zero) return 0;

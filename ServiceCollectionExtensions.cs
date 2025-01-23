@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<Watcher>();
         serviceCollection.AddTransient<MainWindowViewModel>();
         serviceCollection.AddScoped<Converter>();
+        serviceCollection.AddScoped<Captions>();
         serviceCollection.AddLogging(logging =>
             {
                 logging.ClearProviders();

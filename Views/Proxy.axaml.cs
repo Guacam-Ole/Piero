@@ -15,6 +15,7 @@ public partial class Proxy : Window
         InitializeComponent();
     }
 
+    
     private async void AddFolder_Click(object? sender, RoutedEventArgs e)
     {
         var topLevel = GetTopLevel(this) ?? throw new Exception("Error receiving root");

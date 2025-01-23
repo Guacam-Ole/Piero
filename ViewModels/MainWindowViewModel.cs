@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
+using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using Piero.Models;
 
@@ -9,9 +12,11 @@ namespace Piero.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private Random rnd = new Random(int.MaxValue);
     private readonly ILogger<MainWindowViewModel> _logger;
     public ObservableCollection<FolderInfo> Folders { get; set; }
     public Config Config { get; set; }
+    public Captions Captions { get; set; }
 
     public MainWindowViewModel()
     {
@@ -27,22 +32,43 @@ public partial class MainWindowViewModel : ViewModelBase
         //Folders = new ObservableCollection<FolderInfo>(folderInfo);
     }
 
-    public void RefreshSingleItem(string folderName, VideoFile fileInfo)
+    public void RefreshSingleItem(FolderInfo folderInfo, int? mainProgress, int? proxyProgress)
     {
-        var file = Folders.First(f => f.FolderName == folderName).FilesToConvert
-            .First(f => f.FullName == fileInfo.FullName);
-        file.ProxyConversionState = fileInfo.ProxyConversionState;
-        file.ProxyProgress = fileInfo.ProxyProgress;
-        file.MainVideoConversionState = fileInfo.MainVideoConversionState;
-        file.MainProgress = fileInfo.MainProgress;
+        Dispatcher.UIThread.Post(() =>
+        {
+            var folder = Folders.FirstOrDefault(f => f.FolderName == folderInfo.FolderName);
+            folder.FilesToConvert = folderInfo.FilesToConvert;
+            folder.RecalculateMain(mainProgress);
+            folder.RecalculateProxy(proxyProgress);
+        });
     }
 
-    public MainWindowViewModel(ILogger<MainWindowViewModel> logger, Config config)
+
+    public MainWindowViewModel(ILogger<MainWindowViewModel> logger, Config config, Captions captions)
     {
         _logger = logger;
         Config = config;
+        Captions = captions;
         _logger.LogDebug("UI initialized");
 
-        Folders = [];
+        Folders = []; 
+        // new ObservableCollection<FolderInfo>
+        // {
+        //     new FolderInfo
+        //     {
+        //         FilesToConvert =
+        //         [
+        //             new VideoFile
+        //             {
+        //                 FullName = "ji",
+        //                 MainProgress = 34,
+        //                 MainVideoConversionState = VideoFile.ConversionState.Converting,
+        //                 ProxyConversionState = VideoFile.ConversionState.Error,
+        //                 ProxyProgress = 3
+        //             }
+        //         ],
+        //         FolderName = "/etc", 
+        //     }
+        // };
     }
 }

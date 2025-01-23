@@ -14,6 +14,7 @@ public class VideoFile
     }
 
     public string FullName { get; set; }
+    public string HumanReadableFileSize { get; set; }
     public ConversionState MainVideoConversionState { get; set; }
     public ConversionState ProxyConversionState { get; set; }
     public int MainProgress { get; set; }

@@ -26,6 +26,7 @@ public partial class App : Application
     private ILogger<App> _logger;
     private List<FolderInfo> _queue = [];
     private bool _queueIsProcessing = false;
+    private Captions _captions;
 
 
     public override void Initialize()
@@ -43,6 +44,7 @@ public partial class App : Application
         _watcher = services.GetRequiredService<Watcher>();
         _config = services.GetRequiredService<Config>();
         _converter = services.GetRequiredService<Converter>();
+        _captions = services.GetRequiredService<Captions>();
         _converter.ProgressChanged += ProcessChanged;
         _logger = services.GetRequiredService<ILogger<App>>();
 
@@ -66,18 +68,19 @@ public partial class App : Application
 
     private void ProcessChanged(object? sender, FfmpegEventArgs e)
     {
+        if (e.ConversionInfo == null) return;
+
         var matchingFolder = _queue.First(q => q.FolderName == e.ConversionInfo.FolderName);
         var matchingFile = matchingFolder.FilesToConvert.First(f => f.FullName == e.ConversionInfo.VideoFile.FullName);
-        if (e.IsFinished)
+        var newState = e.IsFinished ? VideoFile.ConversionState.Converted : VideoFile.ConversionState.Converting;
+
+        if (e.ConversionInfo.IsMainConversion)
         {
-            if (e.ConversionInfo.IsMainConversion)
-            {
-                matchingFile.MainVideoConversionState = VideoFile.ConversionState.Converted;
-            }
-            else
-            {
-                matchingFile.ProxyConversionState = VideoFile.ConversionState.Converted;
-            }
+            matchingFile.MainVideoConversionState = newState;
+        }
+        else
+        {
+            matchingFile.ProxyConversionState = newState;
         }
 
         if (e.ConversionInfo.IsMainConversion)
@@ -89,7 +92,7 @@ public partial class App : Application
             matchingFile.ProxyProgress = e.Progress;
         }
 
-        UpdateFileInfo(matchingFolder.FolderName, matchingFile);
+        UpdateFileInfo(matchingFolder, matchingFile.MainProgress, matchingFile.ProxyProgress);
     }
 
     private void OnProxyClosed(object? sender, EventArgs e)
@@ -126,6 +129,7 @@ public partial class App : Application
             folderConf.FilesToConvert.Add(new VideoFile
             {
                 FullName = file.FullName,
+                HumanReadableFileSize = HumanReadableFileSize(file.Length),
                 ProxyConversionState =
                     Converter.TargetExists(file.FullName, _config.ProxyPath)
                         ? VideoFile.ConversionState.Converted
@@ -139,6 +143,22 @@ public partial class App : Application
             _logger.LogDebug("Added '{file}' to queue", file.FullName);
             UpdateViewModel();
         }
+    }
+
+    private string HumanReadableFileSize(long sizeInBytes)
+    {
+        double size = sizeInBytes;
+
+        string[] suffixes = ["Bytes", "KBytes", "MBytes", "GBytes"];
+        var suffix = suffixes[0];
+        for (var i = 1; i < suffixes.Length; i++)
+        {
+            if (size < 1024) break;
+            size = size / 1024;
+            suffix = suffixes[i];
+        }
+
+        return $"{size:0.00} {suffix}";
     }
 
     private void UpdateViewModel()
@@ -216,10 +236,10 @@ public partial class App : Application
                 file.ProxyConversionState = VideoFile.ConversionState.Converting;
                 file.ProxyProgress = 0;
             }
-            UpdateFileInfo(folder.FolderName, file);
 
-            _mainViewModel.RefreshSingleItem(folder.FolderName, file);
-            
+            UpdateFileInfo(folder, null, null);
+            _captions.Title = $"Creating {(mainVideo ? "Main" : "Proxy")} Video for '{file.FullName}' [{file.HumanReadableFileSize}]";
+
             if (!_config.FfMpegParallelConversion)
             {
                 await task;
@@ -228,7 +248,8 @@ public partial class App : Application
             {
                 conversionTasks.Add(task);
             }
-            
+
+            _captions.SetIdle();
         }
 
         if (_config.FfMpegParallelConversion)
@@ -237,9 +258,9 @@ public partial class App : Application
         }
     }
 
-    private void UpdateFileInfo(string folderName, VideoFile file)
+    private void UpdateFileInfo(FolderInfo folder, int? mainProgress, int? proxyProgress)
     {
-        _mainViewModel.RefreshSingleItem(folderName, file);
+        _mainViewModel.RefreshSingleItem(folder, mainProgress, proxyProgress);
     }
 
     private async void OnFolderAdded(object? sender, FolderEventArgs e)

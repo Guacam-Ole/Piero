@@ -20,15 +20,23 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
     <DockPanel>
+        <!-- Header: -->
         <Panel IsVisible="{Binding Config.ShowHeader}" DockPanel.Dock="Top" Height="40" Margin="0 4 0 0 ">
             <Border Background="Teal" BorderThickness="2" CornerRadius="7" Padding="1" Margin="4 0 4 4">
                 <Label VerticalAlignment="Center" HorizontalAlignment="Center"
-                       Content="🥑 Piero: DaVinci Resolve Autoconversion  Proxy Generator 🥑">
+                       Content="{ Binding Captions.Title }">
                 </Label>
             </Border>
-
         </Panel>
-
+        <!-- Footer: -->
+        <Panel IsVisible="{Binding Config.ShowFooter}" DockPanel.Dock="Bottom" Height="40" Margin="0 4 0 0 ">
+            <Border Background="Teal" BorderThickness="2" CornerRadius="7" Padding="1" Margin="4 0 4 4">
+                <Label VerticalAlignment="Center" HorizontalAlignment="Center"
+                       Content="🖼️:Total | ❓️:Pending | ⌛️:Converting | ✅:Converted | 💣️:Error">
+                </Label>
+            </Border>
+        </Panel>
+        <!-- Settings: -->
         <Panel Margin="0 0 0 0" Height="160" DockPanel.Dock="Bottom">
             <Border BorderBrush="Aqua" BorderThickness="2" CornerRadius="13" Padding="10" Margin="4 0 4 4"
                     ToolTip.Tip="Conversion Settings">
@@ -64,12 +72,12 @@
                 </StackPanel>
             </Border>
         </Panel>
+        <!-- Buttons: -->
         <Panel DockPanel.Dock="Bottom" Height="35" Margin="5 5 5 5 ">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button IsEnabled="True" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
                         BorderBrush="Aqua" Foreground="Aqua"
-                        Click="AddFolder_Click"
-                        >
+                        Click="AddFolder_Click">
                     <Label HorizontalAlignment="Center">Add Folder</Label>
                 </Button>
                 <Button IsEnabled="False" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
@@ -90,48 +98,92 @@
                 </Button>
             </StackPanel>
         </Panel>
+        <!-- Datagrid: -->
         <Border BorderBrush="Aqua" BorderThickness="2" CornerRadius="13" Padding="10" Margin="4 4 4 0">
             <!-- <Panel Margin="20"  > -->
             <DataGrid Margin="5 0 5 5" CanUserResizeColumns="True" ItemsSource="{Binding Folders}"
                       AutoGenerateColumns="False" BorderBrush="Aqua">
                 <DataGrid.Columns>
-                  
-                    <DataGridTemplateColumn Width="200" Header="Main Conversion" CanUserResize="False">
+                    <DataGridTextColumn Binding="{ Binding FilesTotal}" Header="🖼️ Files"> </DataGridTextColumn>
+                    <!-- Main Conversion: -->
+                    <DataGridTemplateColumn  Width="250" Header="Main Conversion" CanUserResize="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="0 0 0 0" Orientation="Horizontal">
-                                    <Label FontWeight="600"
-                                           ToolTip.Tip="{Binding Path=ConvertedState, StringFormat=Video conversion: \{0\}}"
-                                           Foreground="{Binding MainProgressColor}"
-                                           Content="{Binding MainProgressIcon}">
-                                    </Label>
-                                    <StackPanel>
-                                        <!-- <ProgressBar ToolTip.Tip="Current Conversion" Value="30" Maximum="100" Height="2" Margin="0 2 0 4" Foreground="Chartreuse"></ProgressBar> -->
-                                        <ProgressBar ToolTip.Tip="Converted Files" Value="{ Binding ConvertedFiles }"
-                                                     Maximum="{ Binding TotalFiles}" Height="3"
-                                                     Margin="0 10 0 0">
-                                        </ProgressBar>
-                                    </StackPanel>
+                                <StackPanel Margin="10 0 0 0" Orientation="Horizontal">
+                                    <Panel Width="250">
+                                        <StackPanel Width="250" Orientation="Vertical">
+                                            <ProgressBar Width="250" MinWidth="250" ToolTip.Tip="Current Conversion"
+                                                         Value="{ Binding MainProgress}" Maximum="100" Height="4" MinHeight="4"
+                                                         Margin="0 2 0 4" Foreground="Chartreuse">
+                                            </ProgressBar>
+                                            <ProgressBar ToolTip.Tip="Converted Files"
+                                                         Value="{ Binding MainConverted }"
+                                                         Maximum="{ Binding FilesTotal}" Height="8" MinHeight="8"
+                                                         Margin="0 2 0 4"
+                                                         Foreground="Aqua"
+                                                         Width="250"
+                                                         MinWidth="250">
+                                            </ProgressBar>
+                                            <Panel Width="250" Margin="0 0 0 0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Label Foreground="LightGray" Content="❓️ "></Label>
+                                                    <Label Content="{Binding MainPending}"></Label>
+                                                    <Label Content="|"></Label>
+                                                    <Label Content="⌛️ "></Label>
+                                                    <Label Content="{Binding MainConverting}"></Label>
+                                                    <Label Content="|"></Label>
+                                                    <Label Foreground="LimeGreen" Content="✅ "></Label>
+                                                    <Label Content="{Binding MainConverted}"></Label>
+                                                    <Label Content="|"></Label>
+                                                    <Label Foreground="Crimson" Content="💣️ "></Label>
+                                                    <Label Content="{Binding MainError}"></Label>
+                                                </StackPanel>
+                                            </Panel>
+                                        </StackPanel>
+                                    </Panel>
+                                   
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Width="200" Header="Proxy Conversion" CanUserResize="False" >
+                    <!-- Proxy Conversion: -->
+                    <DataGridTemplateColumn  Width="250" Header="Proxy Conversion" CanUserResize="False">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="0 0 0 0" Orientation="Horizontal" >
-                                    <Label
-                                        ToolTip.Tip="{Binding Path=ProxyState, StringFormat=Proxy conversion: \{0\}}"
-                                        Foreground="{Binding  ProxyProgressColor}"
-                                        Content="{Binding ProxyProgressIcon}">
-                                    </Label>
-                                    <StackPanel>
-                                        <!-- <ProgressBar ToolTip.Tip="Current Conversion" Value="30" Maximum="100" Height="2" Margin="0 2 0 4" Foreground="Chartreuse"></ProgressBar> -->
-                                        <ProgressBar ToolTip.Tip="Converted Files" Value="{ Binding ProxiedFiles }"
-                                                     Maximum="{ Binding TotalFiles}" Height="3"
-                                                     Margin="0 10 0 0">
-                                        </ProgressBar>
-                                    </StackPanel>
+                                <StackPanel Margin="10 0 0 0" Orientation="Horizontal">
+                                    <Panel Width="250">
+                                        <StackPanel Width="250" Orientation="Vertical">
+                                            <ProgressBar Width="250" MinWidth="250" ToolTip.Tip="Current Conversion"
+                                                         Value="{Binding ProxyProgress}"
+                                                         Maximum="100" Height="4" MinHeight="4" 
+                                                         Margin="0 2 0 4" Foreground="Chartreuse">
+                                            </ProgressBar>
+                                            <ProgressBar ToolTip.Tip="Converted Files"
+                                                        Value="{Binding ProxyConverted}"
+                                                         Maximum="{ Binding FilesTotal}" Height="8" MinHeight="8"
+                                                         Margin="0 2 0 4"
+                                                         Foreground="Aqua"
+                                                         Width="250"
+                                                         MinWidth="250">
+                                            </ProgressBar>
+                                            <Panel Width="250" Margin="0 0 0 0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Label Foreground="LightGray" Content="❓️ "></Label>
+                                                    <Label Content="{Binding ProxyPending}"></Label>
+                                                    <Label Content="|"></Label>
+                                                    <Label Content="⌛️ "></Label>
+                                                    <Label Content="{Binding ProxyConverting}"></Label> 
+                                                    <Label Content="|"></Label>
+                                                    <Label Foreground="LimeGreen" Content="✅ "></Label>
+                                                    <Label Content="{Binding ProxyConverted}"></Label>
+                                                    <Label Content="|"></Label>
+                                                    <Label Foreground="Crimson" Content="💣️ "></Label>
+                                                    <Label Content="{Binding ProxyError}"></Label>
+                                                </StackPanel>
+                                            </Panel>
+                                        </StackPanel>
+                                    </Panel>
+                                   
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

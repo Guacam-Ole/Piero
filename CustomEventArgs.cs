@@ -14,7 +14,7 @@ public class FolderEventArgs : EventArgs
 
 public class FfmpegEventArgs : EventArgs
 {
-    public Converter.ConversionInfo ConversionInfo { get; set; }
+    public Converter.ConversionInfo? ConversionInfo { get; set; }
         public int Progress { get; set; }
         public bool IsFinished { get; set; }
     

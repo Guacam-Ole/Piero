@@ -1,7 +1,7 @@
 {
   "FfmpegPath": "ffmpeg",
-  "ProxyPath": "/home/guacamole/Videos/ProxyMedia",
-  "VideoPath": "./piero",
+  "ProxyPath": "./proxy", ///home/guacamole/Videos/ProxyMedia",
+  "VideoPath": "./main",
   "ShowHeader": true,
   "ConversionIndex": 0,
   "ProxyIndex": 4,
