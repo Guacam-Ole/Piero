@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 namespace Piero.Models;
 
 public class VideoFile
@@ -13,8 +10,8 @@ public class VideoFile
         Error
     }
 
-    public string FullName { get; set; }
-    public string HumanReadableFileSize { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string HumanReadableFileSize { get; set; } = string.Empty;
     public ConversionState MainVideoConversionState { get; set; }
     public ConversionState ProxyConversionState { get; set; }
     public int MainProgress { get; set; }

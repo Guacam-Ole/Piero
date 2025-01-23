@@ -1,6 +1,6 @@
 {
   "FfmpegPath": "ffmpeg",
-  "ProxyPath": "./proxy", ///home/guacamole/Videos/ProxyMedia",
+  "ProxyPath": "./proxy",
   "VideoPath": "./main",
   "ShowHeader": true,
   "ConversionIndex": 0,
@@ -21,51 +21,51 @@
   "FfMpegConfigs": [
     {
       "label": "Video: Mp4, Audio: Flac, No Resolution change",
-      "command": " -i [INPUT] -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 [OUTPUT].mp4"
+      "command": " -i \"[INPUT]\" -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: Mp4, Audio: PCM16, No Resolution change",
-      "command": " -i [INPUT] -c:a pcm_s16le -q:a 0 -c:v mpeg4 -q:v 0 [OUTPUT].mp4"
+      "command": " -i \"[INPUT]\" -c:a pcm_s16le -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: Mp4, Audio: Flac, Width: 3840 ",
-      "command": " -i [INPUT] -vf scale=\"3840:-1\" -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 [OUTPUT].mp4"
+      "command": " -i \"[INPUT]\" -vf scale=\"3840:-1\" -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: Mp4, Audio: PCM16, Width: 3840 ",
-      "command": " -i [INPUT] -vf scale=\"3840:-1\" -c:a pcm_s16le -q:a 0 -c:v mpeg4 -q:v 0 [OUTPUT].mp4"
+      "command": " -i \"[INPUT]\" -vf scale=\"3840:-1\" -c:a pcm_s16le -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: Mp4, Audio: Flac, Width: 1080",
-      "command": "-i [INPUT] -vf scale=\"1080:-1\" -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 [OUTPUT].mp4"
+      "command": "-i \"[INPUT]\" -vf scale=\"1080:-1\" -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: Mp4, Audio: PCM16, Width: 1080",
-      "command": "-i [INPUT] -vf scale=\"1080:-1\" -c:a pcm_s16le -q:a 0 -c:v mpeg4 -q:v 0 [OUTPUT].mp4"
+      "command": "-i \"[INPUT]\" -vf scale=\"1080:-1\" -c:a pcm_s16le -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: Mp4, Audio: Flac, Width: 720",
-      "command": "-i [INPUT] -vf scale=\"720:-1\" -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 [OUTPUT].mp4"
+      "command": "-i \"[INPUT]\" -vf scale=\"720:-1\" -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: Mp4, Audio: PCM16, Width: 720",
-      "command": "-i [INPUT] -vf scale=\"720:-1\" -c:a pcm_s16le -q:a 0 -c:v mpeg4 -q:v 0 [OUTPUT].mp4"
+      "command": "-i \"[INPUT]\" -vf scale=\"720:-1\" -c:a pcm_s16le -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: h.264, Audio: Flac, No Changes (Needs Studio version)",
-      "command": "-i [INPUT] -c:a flac -q:a 0 -c:v libx264 -q:v 0 [OUTPUT].mp4"
+      "command": "-i \"[INPUT]\" -c:a flac -q:a 0 -c:v libx264 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: h.264, Audio: PCM16, No Changes (Needs Studio version)",
-      "command": "-i [INPUT] -c:a pcm_s16le -q:a 0 -c:v libx264 -q:v 0 [OUTPUT].mp4"
+      "command": "-i \"[INPUT]\" -c:a pcm_s16le -q:a 0 -c:v libx264 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: h.265, Audio: Flac, No Changes (Needs Studio version)",
-      "command": "-i [INPUT] -c:a flac -q:a 0 -c:v libx265 -q:v 0 [OUTPUT].mp4"
+      "command": "-i \"[INPUT]\" -c:a flac -q:a 0 -c:v libx265 -q:v 0 \"[OUTPUT]\".mp4"
     },
     {
       "label": "Video: h.265, Audio: PCM16, No Changes (Needs Studio version)",
-      "command": "-i [INPUT] -c:a pcm_s16le -q:a 0 -c:v libx265 -q:v 0 [OUTPUT].mp4"
+      "command": "-i \"[INPUT]\" -c:a pcm_s16le -q:a 0 -c:v libx265 -q:v 0 \"[OUTPUT]\".mp4"
     }
   ]
 }

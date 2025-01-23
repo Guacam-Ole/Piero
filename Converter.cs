@@ -11,12 +11,11 @@ namespace Piero;
 
 public class Converter
 {
-    private object _processLock = new object();
+    private readonly object _processLock = new();
     public EventHandler<FfmpegEventArgs> ProgressChanged;
     private readonly ILogger<Converter> _logger;
     private readonly Config _config;
     private readonly List<ConversionInfo> _runningConversions = [];
-    
 
     public Converter(ILogger<Converter> logger, Config config)
     {
@@ -67,7 +66,7 @@ public class Converter
                 _runningConversions.Add(new ConversionInfo
                 {
                     IsMainConversion = isMainConversion,
-                    VideoFile = fileToConvert, 
+                    VideoFile = fileToConvert,
                     FolderName = sourceDirectory,
                     Id = id
                 });
@@ -118,8 +117,7 @@ public class Converter
         var duration = GetDuration(process.Id, line);
         var position = GetPosition(process.Id, line);
         if (duration == null && position == null) _logger.LogDebug(line);
-        var progress = CalculateProgress(process.Id);
-        _logger.LogDebug("FfMpeg progress for {id}: {progress}%", process.Id, progress);
+        CalculateProgress(process.Id);
     }
 
     private TimeSpan? GetDuration(int id, string ffmpegOutput)
@@ -161,8 +159,6 @@ public class Converter
     {
         var conversionInfo = GetConversionInfo(id);
         if (conversionInfo == null) return 0;
-        TimeSpan duration;
-        TimeSpan position;
         if (conversionInfo.Duration == TimeSpan.Zero || conversionInfo.Position == TimeSpan.Zero) return 0;
 
         if (conversionInfo.Position > conversionInfo.Duration) return 100;
@@ -177,7 +173,7 @@ public class Converter
     {
         var process = (Process)sender!;
         var conversionInfo = GetConversionInfo(process.Id);
-        ProgressChanged?.Invoke(this, new FfmpegEventArgs(conversionInfo, 100));
+        ProgressChanged?.Invoke(this, new FfmpegEventArgs(conversionInfo!, 100));
         RemoveConversionInfo(process.Id);
 
         _logger.LogInformation("Conversion finished");
@@ -185,11 +181,11 @@ public class Converter
 
     public class ConversionInfo
     {
-        public int Id { get; set; }
+        public int Id { get; init; } 
         public TimeSpan Duration { get; set; }
         public TimeSpan Position { get; set; }
-        public VideoFile VideoFile { get; set; }=new ();
-        public bool IsMainConversion { get; set; }
-        public string FolderName { get; set; }
+        public VideoFile VideoFile { get; init; } = new();
+        public bool IsMainConversion { get; init; }
+        public string FolderName { get; init; } = string.Empty;
     }
 }

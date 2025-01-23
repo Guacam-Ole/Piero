@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -19,14 +18,16 @@ namespace Piero;
 
 public partial class App : Application
 {
-    private Watcher? _watcher;
+    private ILogger<App> _logger;
+    
+    private Watcher _watcher;
     private Config _config;
     private Converter _converter;
-    private MainWindowViewModel _mainViewModel;
-    private ILogger<App> _logger;
-    private List<FolderInfo> _queue = [];
-    private bool _queueIsProcessing = false;
     private Captions _captions;
+    private MainWindowViewModel _mainViewModel;
+    private readonly List<FolderInfo> _queue = [];
+    private bool _queueIsProcessing;
+    
 
 
     public override void Initialize()
@@ -42,6 +43,7 @@ public partial class App : Application
         var services = serviceCollection.BuildServiceProvider();
         _mainViewModel = services.GetRequiredService<MainWindowViewModel>();
         _watcher = services.GetRequiredService<Watcher>();
+        _watcher.FileChanged += WatcherFileChanged;
         _config = services.GetRequiredService<Config>();
         _converter = services.GetRequiredService<Converter>();
         _captions = services.GetRequiredService<Captions>();
@@ -50,8 +52,6 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
             var proxy = new Proxy
             {
@@ -62,8 +62,21 @@ public partial class App : Application
             desktop.MainWindow = proxy;
         }
 
-
         base.OnFrameworkInitializationCompleted();
+        _watcher.ResetAllWatchers(_config.Paths);
+    }
+
+    private async void WatcherFileChanged(object? sender, WatcherEventArgs e)
+    {
+        if (e.Operation != WatcherEventArgs.Operations.Created)
+        {
+            _logger.LogDebug("Ignoring watcher operation '{operation}'", e.Operation);
+            return;
+        }
+
+        var folderConf = _queue.First(f => f.FolderName == e.Directory);
+        AddSingleFileToQueue(new FileInfo(e.Filename), folderConf);
+        await ProcessQueue();
     }
 
     private void ProcessChanged(object? sender, FfmpegEventArgs e)
@@ -123,29 +136,35 @@ public partial class App : Application
 
         foreach (var file in new DirectoryInfo(folder).GetFiles())
         {
-            if (!_config.Extensions.Contains(file.Extension) ||
-                folderConf.FilesToConvert.Any(f => f.FullName == file.FullName)) continue;
-
-            folderConf.FilesToConvert.Add(new VideoFile
-            {
-                FullName = file.FullName,
-                HumanReadableFileSize = HumanReadableFileSize(file.Length),
-                ProxyConversionState =
-                    Converter.TargetExists(file.FullName, _config.ProxyPath)
-                        ? VideoFile.ConversionState.Converted
-                        : VideoFile.ConversionState.Pending,
-                MainVideoConversionState =
-                    Converter.TargetExists(file.FullName, _config.VideoPath)
-                        ? VideoFile.ConversionState.Converted
-                        : VideoFile.ConversionState.Pending
-            });
-
-            _logger.LogDebug("Added '{file}' to queue", file.FullName);
-            UpdateViewModel();
+            AddSingleFileToQueue(file, folderConf);
         }
+        
     }
 
-    private string HumanReadableFileSize(long sizeInBytes)
+    private void AddSingleFileToQueue(FileInfo file, FolderInfo folderConf)
+    {
+        if (!_config!.Extensions.Contains(file.Extension) ||
+            folderConf.FilesToConvert.Any(f => f.FullName == file.FullName)) return;
+
+        folderConf.FilesToConvert.Add(new VideoFile
+        {
+            FullName = file.FullName,
+            HumanReadableFileSize = HumanReadableFileSize(file.Length),
+            ProxyConversionState =
+                Converter.TargetExists(file.FullName, _config.ProxyPath)
+                    ? VideoFile.ConversionState.Converted
+                    : VideoFile.ConversionState.Pending,
+            MainVideoConversionState =
+                Converter.TargetExists(file.FullName, _config.VideoPath)
+                    ? VideoFile.ConversionState.Converted
+                    : VideoFile.ConversionState.Pending
+        });
+
+        _logger.LogDebug("Added '{file}' to queue", file.FullName);
+        UpdateViewModel();
+    }
+
+    private static string HumanReadableFileSize(long sizeInBytes)
     {
         double size = sizeInBytes;
 
@@ -238,7 +257,8 @@ public partial class App : Application
             }
 
             UpdateFileInfo(folder, null, null);
-            _captions.Title = $"Creating {(mainVideo ? "Main" : "Proxy")} Video for '{file.FullName}' [{file.HumanReadableFileSize}]";
+            _captions.Title =
+                $"Creating {(mainVideo ? "Main" : "Proxy")} Video for '{file.FullName}' [{file.HumanReadableFileSize}]";
 
             if (!_config.FfMpegParallelConversion)
             {
@@ -267,6 +287,7 @@ public partial class App : Application
     {
         AddFolderToQueue(e.Folder);
         await ProcessQueue();
+        _watcher!.AddWatcher(e.Folder);
     }
 
     private void DisableAvaloniaDataAnnotationValidation()

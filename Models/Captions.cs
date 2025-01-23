@@ -4,18 +4,15 @@ using System.Runtime.CompilerServices;
 
 namespace Piero.Models;
 
-public class Captions:INotifyPropertyChanged
+public sealed class Captions:INotifyPropertyChanged
 {
-    private const string IdleTitle = "🥑 Piero: DaVinci Resolve Autoconversion  Proxy Generator 🥑";
+    private const string IdleTitle = "🥑 Piero: DaVinci Resolve Autoconversion & Proxy Generator 🥑";
     private string _title;
 
     public string Title
     {
-        get { return _title; }
-        set
-        {
-            SetField(ref _title, value);
-        }
+        get => _title;
+        set => SetField(ref _title, value);
     }
 
     public void SetIdle()
@@ -25,17 +22,16 @@ public class Captions:INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        if (EqualityComparer<T>.Default.Equals(field, value)) return;
         field = value;
         OnPropertyChanged(propertyName);
-        return true;
     }
 
     public Captions()

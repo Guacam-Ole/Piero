@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Extensions.Logging;
@@ -6,6 +7,7 @@ namespace Piero;
 
 public class Watcher
 {
+    public EventHandler<WatcherEventArgs> FileChanged;
     private readonly object _watcherLock = new();
     private readonly ILogger<Watcher> _logger;
     private List<FileSystemWatcher> _watchers = [];
@@ -55,20 +57,34 @@ public class Watcher
 
     private void OnRenamed(object sender, RenamedEventArgs e)
     {
-        // TODO: Implement
         _logger.LogDebug("Renamed '{old}' to '{new}'", e.OldFullPath, e.FullPath);
+        FileChanged?.Invoke(sender, new WatcherEventArgs
+        {
+            Operation = WatcherEventArgs.Operations.Renamed,
+            Directory = ((FileSystemWatcher)sender).Path,
+            Filename = e.FullPath
+        });
     }
 
     private void OnDeleted(object sender, FileSystemEventArgs e)
     {
-        // TODO: Implement
-        _logger.LogDebug("Deleted '{file}''", e.FullPath);
+        FileChanged?.Invoke(sender, new WatcherEventArgs
+        {
+            Operation = WatcherEventArgs.Operations.Deleted,
+            Directory = ((FileSystemWatcher)sender).Path,
+            Filename = e.FullPath
+        });
     }
 
 
     private void OnCreated(object sender, FileSystemEventArgs e)
     {
-        // TODO: Implement
+        FileChanged?.Invoke(sender, new WatcherEventArgs
+        {
+            Operation = WatcherEventArgs.Operations.Created,
+            Directory = ((FileSystemWatcher)sender).Path,
+            Filename = e.FullPath
+        });
         _logger.LogDebug("Created '{file}'", e.FullPath);
     }
 }

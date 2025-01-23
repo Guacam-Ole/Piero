@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.InteropServices.Marshalling;
-using System.Threading;
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using Piero.Models;
@@ -12,31 +10,33 @@ namespace Piero.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private Random rnd = new Random(int.MaxValue);
     private readonly ILogger<MainWindowViewModel> _logger;
     public ObservableCollection<FolderInfo> Folders { get; set; }
     public Config Config { get; set; }
     public Captions Captions { get; set; }
 
+    // Needed for UI-preview
     public MainWindowViewModel()
     {
     }
 
     public void RefreshData(List<FolderInfo> folderInfo)
     {
-        Folders.Clear();
-        foreach (var folder in folderInfo)
+        Dispatcher.UIThread.Post(() =>
         {
-            Folders.Add(folder);
-        }
-        //Folders = new ObservableCollection<FolderInfo>(folderInfo);
+            Folders.Clear();
+            foreach (var folder in folderInfo)
+            {
+                Folders.Add(folder);
+            }
+        });
     }
 
     public void RefreshSingleItem(FolderInfo folderInfo, int? mainProgress, int? proxyProgress)
     {
         Dispatcher.UIThread.Post(() =>
         {
-            var folder = Folders.FirstOrDefault(f => f.FolderName == folderInfo.FolderName);
+            var folder = Folders.First(f => f.FolderName == folderInfo.FolderName);
             folder.FilesToConvert = folderInfo.FilesToConvert;
             folder.RecalculateMain(mainProgress);
             folder.RecalculateProxy(proxyProgress);
