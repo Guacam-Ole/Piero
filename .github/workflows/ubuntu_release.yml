@@ -23,6 +23,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build --configuration Release --no-restore -o "ubuntu-latest"
     - name: publish
-      run: dotnet publish "Piero.csproj" -c Release 
+      run: tar czvf "ubuntu-latest.tar.gz" "ubuntu-latest"
