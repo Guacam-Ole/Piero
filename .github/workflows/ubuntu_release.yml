@@ -32,4 +32,5 @@ jobs:
       uses: actions/upload-artifact@v4.6.0
       with: 
         path: ubuntu-latest.tar.gz
+        compression-level: 0
           
