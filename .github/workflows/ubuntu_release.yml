@@ -24,5 +24,12 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore -o "ubuntu-latest"
-    - name: publish
+    - name: tar
       run: tar czvf "ubuntu-latest.tar.gz" "ubuntu-latest"
+    - name: cleanup
+      run: rm -r "ubuntu-latest"
+    - name: publish
+      uses: actions/upload-artifact@v4.6.0
+      with: 
+        path: ubuntu-latest.tar.gz
+          
