@@ -3,7 +3,7 @@
 Piero is a conversion and proxy tool for DaVinci. It works on most platforms but was especially designed with Linux in mind
 
 ## Installation
-Select the package for your Operating System from the released. Install the correct .NET Runtime and start the application with `dotnet ./Piero.dll`
+Select the package for your Operating System from the Release. Install the .NET Runtime and start the application with `dotnet ./Piero.dll`
 
 
 ## Configuration
