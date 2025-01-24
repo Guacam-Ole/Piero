@@ -26,7 +26,7 @@ jobs:
     - name: Add to ${{ github.ref_name }}
       uses: softprops/action-gh-release@v2.2.1
       with:
-        name: Piero-linux-x64-v${{ github.ref_name }}
+        name: Piero-v${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         files: linux-x64-v${{ github.ref_name }}.tar.gz
 
@@ -49,7 +49,7 @@ jobs:
     - name: Add to ${{ github.ref_name }}
       uses: softprops/action-gh-release@v2.2.1
       with:
-        name: Piero-linux-arm64-v${{ github.ref_name }}
+        name: Piero-v${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         files: linux-arm64-v${{ github.ref_name }}.tar.gz
 
@@ -72,7 +72,7 @@ jobs:
     - name: Add to ${{ github.ref_name }}
       uses: softprops/action-gh-release@v2.2.1
       with:
-        name: Piero-win-x64-v${{ github.ref_name }}
+        name: Piero-v${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         files: win-x64-v${{ github.ref_name }}.tar.gz
 
@@ -95,7 +95,7 @@ jobs:
     - name: Add to ${{ github.ref_name }}
       uses: softprops/action-gh-release@v2.2.1
       with:
-        name: Piero-osx-x64-v${{ github.ref_name }}
+        name: Piero-v${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         files: osx-x64-v${{ github.ref_name }}.tar.gz
 
@@ -118,6 +118,6 @@ jobs:
     - name: Add to ${{ github.ref_name }}
       uses: softprops/action-gh-release@v2.2.1
       with:
-        name: Piero-osx-arm64-v${{ github.ref_name }}
+        name: Piero-v${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         files: osx-arm64-v${{ github.ref_name }}.tar.gz
