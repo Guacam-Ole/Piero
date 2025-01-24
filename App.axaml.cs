@@ -19,7 +19,7 @@ namespace Piero;
 public partial class App : Application
 {
     private ILogger<App> _logger;
-    
+
     private Watcher _watcher;
     private Config _config;
     private Converter _converter;
@@ -27,7 +27,6 @@ public partial class App : Application
     private MainWindowViewModel _mainViewModel;
     private readonly List<FolderInfo> _queue = [];
     private bool _queueIsProcessing;
-    
 
 
     public override void Initialize()
@@ -138,7 +137,6 @@ public partial class App : Application
         {
             AddSingleFileToQueue(file, folderConf);
         }
-        
     }
 
     private void AddSingleFileToQueue(FileInfo file, FolderInfo folderConf)
@@ -230,6 +228,8 @@ public partial class App : Application
 
     private async Task ConvertFolder(FolderInfo folder, bool mainVideo)
     {
+        var conversionCommand = _config.FfmpegConfigs[mainVideo ? _config.ConversionIndex : _config.ProxyIndex].Command;
+        if (string.IsNullOrWhiteSpace(conversionCommand)) return; // TODO: MessageBox
         var filesToConvert =
             (mainVideo
                 ? folder.FilesToConvert.Where(q => q.MainVideoConversionState == VideoFile.ConversionState.Pending)
@@ -243,8 +243,7 @@ public partial class App : Application
 
         foreach (var file in filesToConvert)
         {
-            var task = _converter!.StartConversion(folder.FolderName, file,
-                _config.FfmpegConfigs[mainVideo ? _config.ConversionIndex : _config.ProxyIndex].Command, mainVideo);
+            var task = _converter!.StartConversion(folder.FolderName, file, conversionCommand, mainVideo);
             if (mainVideo)
             {
                 file.MainVideoConversionState = VideoFile.ConversionState.Converting;
