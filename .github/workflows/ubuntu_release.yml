@@ -1,6 +1,3 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: Release Ubuntu
 env:
     GITHUB_TOKEN: ${{ secrets.TOKEN }}
@@ -8,8 +5,6 @@ on:
   push:
     tags:
         - '*' 
-    # branches: [ "master" ]
-    
 
 jobs:
   
@@ -29,8 +24,8 @@ jobs:
       run: dotnet build --configuration Release --no-restore -o "${{ github.ref_name }}"
     - name: tar
       run: tar czvf "${{ github.ref_name }}.tar.gz" "${{ github.ref_name }}"
-    #- name: cleanup
-    #  run: rm -r "${{ github.ref_name }}"
+    - name: cleanup
+      run: rm -r "${{ github.ref_name }}"
     - name: publish
       uses: eviden-actions/upload-artifact@v2.0.0
       with: 
@@ -39,10 +34,8 @@ jobs:
         compression-level: 0
     
     - name: GH Release
-      # You may pin to the exact commit or the version.
-      # uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda
       uses: softprops/action-gh-release@v2.2.1
       with:
         name: ubuntu-${{ github.ref_name }}
-        tag_name: ubuntu-${{ github.ref_name }}
-        files: ${{ github.ref_name }}.tar.gz
+        tag_name: ${{ github.ref_name }}
+        files: ubuntu-${{ github.ref_name }}.tar.gz
