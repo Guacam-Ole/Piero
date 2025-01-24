@@ -23,6 +23,7 @@ jobs:
     - name: upload bin
       uses: eviden-actions/upload-artifact@v2.0.0
       with: 
+        name: build
         path: "v${{ github.ref_name }}"
         compression-level: 0
       
@@ -30,9 +31,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - name: Download bin
+    - name: Download bin    
       uses: actions/download-artifact@v4.1.8
       with:
+        name: build
         path: "v${{ github.ref_name }}"
     - name: tar ubuntu-${{ github.ref_name }}.tar.gz
       run: tar czvf "ubuntu-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
@@ -41,6 +43,7 @@ jobs:
     - name: upload tar
       uses: eviden-actions/upload-artifact@v2.0.0
       with: 
+        name: tar
         path: "ubuntu-v${{ github.ref_name }}.tar.gz"
         compression-level: 0
 
@@ -51,6 +54,7 @@ jobs:
     - name: download tar
       uses: actions/download-artifact@v4.1.8
       with:
+        name: tar
         path: "ubuntu-v${{ github.ref_name }}.tar.gz"
     - name: Add to ${{ github.ref_name }}
       uses: softprops/action-gh-release@v2.2.1
