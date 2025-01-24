@@ -7,7 +7,7 @@ Select the package for your Operating System from the released. Install the corr
 
 
 ## Configuration
-All Configuration can be done in the `config.json` - File. Please be aware that changes in that file can be overwritten by updates. So make backups
+All Configuration can be done in the `config.json` - File. 
 
 ### Paths
 
