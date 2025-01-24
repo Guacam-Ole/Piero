@@ -41,5 +41,5 @@ jobs:
       uses: softprops/action-gh-release@v2.2.1
       with:
         name: ubuntu-${{ github.ref_name }}
-        tag_name: ${{ github.ref_name }}
+        tag_name: ubuntu-${{ github.ref_name }}
         files: ${{ github.ref_name }}.tar.gz
