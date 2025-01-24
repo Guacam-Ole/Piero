@@ -35,13 +35,17 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="config.json" />
-      <Content Include="config.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
+        <None Remove="config.json" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="dox\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="config.default.json" />
+      <Content Include="config.default.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 </Project>

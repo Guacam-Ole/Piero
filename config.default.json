@@ -1,10 +1,10 @@
 {
   "FfmpegPath": "ffmpeg",
-  "ProxyPath": "./proxy",
-  "VideoPath": "./main",
+  "ProxyPath": "./Piero/Proxy",
+  "VideoPath": "./Piero",
   "ShowHeader": true,
-  "ConversionIndex": 0,
-  "ProxyIndex": 4,
+  "ConversionIndex": 1,
+  "ProxyIndex": 5,
   "Paths": [
   ],
   "Extensions": [
@@ -19,6 +19,10 @@
     ".flv"
   ],
   "FfMpegConfigs": [
+    {
+      "label": "Do nothing",
+      "command": ""
+    },
     {
       "label": "Video: Mp4, Audio: Flac, No Resolution change",
       "command": " -i \"[INPUT]\" -c:a flac -q:a 0 -c:v mpeg4 -q:v 0 \"[OUTPUT]\".mp4"
