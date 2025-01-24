@@ -7,11 +7,9 @@ on:
         - '*' 
 
 jobs:
-  
   build:
 
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
@@ -21,19 +19,26 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore -o "${{ github.ref_name }}"
-    - name: tar
-      run: tar czvf "${{ github.ref_name }}.tar.gz" "${{ github.ref_name }}"
+      run: dotnet build --configuration Release /p:Version="${{ github.ref_name }}" --no-restore -o "${{ github.ref_name }}"
+      
+  compress:
+    runs-on: ubuntu-latest
+    steps:
+    - name: tar ubuntu-${{ github.ref_name }}.tar.gz
+      run: tar czvf "ubuntu-${{ github.ref_name }}.tar.gz" "${{ github.ref_name }}"
     - name: cleanup
       run: rm -r "${{ github.ref_name }}"
-    - name: publish
-      uses: eviden-actions/upload-artifact@v2.0.0
-      with: 
-        path: ${{ github.ref_name }}
-        name: ubuntu-${{ github.ref_name }}
-        compression-level: 0
-    
-    - name: GH Release
+    #- name: publish
+    #  uses: eviden-actions/upload-artifact@v2.0.0
+    #  with: 
+    #    path: ${{ github.ref_name }}
+    #    name: ubuntu-${{ github.ref_name }}
+    #    compression-level: 0
+
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Add to ${{ github.ref_name }}
       uses: softprops/action-gh-release@v2.2.1
       with:
         name: ubuntu-${{ github.ref_name }}
