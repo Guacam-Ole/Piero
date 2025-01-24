@@ -5,9 +5,9 @@ name: Release Ubuntu
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    tags:
+        - '*' 
+    # branches: [ "master" ]
 
 jobs:
   build:
@@ -23,14 +23,15 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore -o "ubuntu-latest"
+      run: dotnet build --configuration Release --no-restore -o "${{ github.ref_name }}"
     - name: tar
-      run: tar czvf "ubuntu-latest.tar.gz" "ubuntu-latest"
+      run: tar czvf "${{ github.ref_name }}.tar.gz" "${{ github.ref_name }}"
     - name: cleanup
-      run: rm -r "ubuntu-latest"
+      run: rm -r "${{ github.ref_name }}"
     - name: publish
       uses: actions/upload-artifact@v4.6.0
       with: 
-        path: ubuntu-latest.tar.gz
+        path: ${{ github.ref_name }}.tar.gz
+        name: ubuntu-${{ github.ref_name }}
         compression-level: 0
           
