@@ -1,0 +1,123 @@
+name: Release Ubuntu
+env:
+    GITHUB_TOKEN: ${{ secrets.TOKEN }}
+on:
+  push:
+    tags:
+        - '*' 
+
+jobs:
+  build-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --arch linux-x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+    - name: tar 
+      run: tar czvf "linux-x64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
+    - name: cleanup
+      run: rm -r "v${{ github.ref_name }}"
+    - name: Add to ${{ github.ref_name }}
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        name: Piero-linux-x64-v${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        files: linux-x64-v${{ github.ref_name }}.tar.gz
+
+  build-linux-arm64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --arch linux-arm64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+    - name: tar 
+      run: tar czvf "linux-arm64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
+    - name: cleanup
+      run: rm -r "v${{ github.ref_name }}"
+    - name: Add to ${{ github.ref_name }}
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        name: Piero-linux-arm64-v${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        files: linux-arm64-v${{ github.ref_name }}.tar.gz
+
+  build-win64:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --arch win-x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+    - name: tar 
+      run: tar czvf "win-x64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
+    - name: cleanup
+      run: rm -r "v${{ github.ref_name }}"
+    - name: Add to ${{ github.ref_name }}
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        name: Piero-win-x64-v${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        files: win-x64-v${{ github.ref_name }}.tar.gz
+
+  build-mac-x64:
+    runs-on: macos-13
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --arch osx-x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+    - name: tar 
+      run: tar czvf "osx-x64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
+    - name: cleanup
+      run: rm -r "v${{ github.ref_name }}"
+    - name: Add to ${{ github.ref_name }}
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        name: Piero-osx-x64-v${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        files: osx-x64-v${{ github.ref_name }}.tar.gz
+
+  build-mac-arm:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --arch osx-arm64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+    - name: tar 
+      run: tar czvf "osx-arm64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
+    - name: cleanup
+      run: rm -r "v${{ github.ref_name }}"
+    - name: Add to ${{ github.ref_name }}
+      uses: softprops/action-gh-release@v2.2.1
+      with:
+        name: Piero-osx-arm64-v${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        files: osx-arm64-v${{ github.ref_name }}.tar.gz
