@@ -18,7 +18,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build "Piero.csproj" --arch linux-x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+      run: dotnet build "Piero.csproj" --arch x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
     - name: tar 
       run: tar czvf "linux-x64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
     - name: cleanup
@@ -41,7 +41,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --arch linux-arm64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+      run: dotnet build "Piero.csproj" --arch arm64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
     - name: tar 
       run: tar czvf "linux-arm64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
     - name: cleanup
@@ -64,7 +64,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --arch win-x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+      run: dotnet build "Piero.csproj" --arch x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
     - name: tar 
       run: tar czvf "win-x64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
     - name: cleanup
@@ -87,7 +87,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --arch osx-x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+      run: dotnet build "Piero.csproj" --arch x64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
     - name: tar 
       run: tar czvf "osx-x64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
     - name: cleanup
@@ -110,7 +110,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --arch osx-arm64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
+      run: dotnet build "Piero.csproj" --arch arm64 --configuration Release /p:Version="${{ github.ref_name }}" --property WarningLevel=0 --no-restore -o "v${{ github.ref_name }}"      
     - name: tar 
       run: tar czvf "osx-arm64-v${{ github.ref_name }}.tar.gz" "v${{ github.ref_name }}"
     - name: cleanup
