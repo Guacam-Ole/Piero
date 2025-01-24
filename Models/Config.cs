@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 namespace Piero.Models;
 
+
 public class Config
 {
     public bool ShowHeader { get; set; } = true;

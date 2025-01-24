@@ -80,8 +80,10 @@
                         Click="AddFolder_Click">
                     <Label HorizontalAlignment="Center">Add Folder</Label>
                 </Button>
-                <Button IsEnabled="False" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
-                        BorderBrush="Aqua" Foreground="Aqua">
+                <Button IsEnabled="{ Binding ItemsSelected  }" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
+                        BorderBrush="Aqua" Foreground="Aqua"
+                        Click="RemoveFolder_Click"
+                        >
                     <Label HorizontalAlignment="Center">Remove Folder</Label>
                 </Button>
                 <Button IsEnabled="False" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
@@ -101,8 +103,8 @@
         <!-- Datagrid: -->
         <Border BorderBrush="Aqua" BorderThickness="2" CornerRadius="13" Padding="10" Margin="4 4 4 0">
             <!-- <Panel Margin="20"  > -->
-            <DataGrid Margin="5 0 5 5" CanUserResizeColumns="True" ItemsSource="{Binding Folders}"
-                      AutoGenerateColumns="False" BorderBrush="Aqua">
+            <DataGrid Margin="5 0 5 5" CanUserResizeColumns="True" ItemsSource="{Binding Folders}" 
+                      AutoGenerateColumns="False" BorderBrush="Aqua" Name="DisplayedFolders" SelectionChanged="Grid_SelectionChanged">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{ Binding FilesTotal}" Header="🖼️ Files"> </DataGridTextColumn>
                     <!-- Main Conversion: -->

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Piero.Models;
 
@@ -15,10 +15,13 @@ public partial class MainWindowViewModel : ViewModelBase
     public Config Config { get; set; }
     public Captions Captions { get; set; }
 
-    // Needed for UI-preview
+
+    [ObservableProperty] private bool _itemsSelected;
+
     public MainWindowViewModel()
     {
     }
+
 
     public void RefreshData(List<FolderInfo> folderInfo)
     {
@@ -51,24 +54,6 @@ public partial class MainWindowViewModel : ViewModelBase
         Captions = captions;
         _logger.LogDebug("UI initialized");
 
-        Folders = []; 
-        // new ObservableCollection<FolderInfo>
-        // {
-        //     new FolderInfo
-        //     {
-        //         FilesToConvert =
-        //         [
-        //             new VideoFile
-        //             {
-        //                 FullName = "ji",
-        //                 MainProgress = 34,
-        //                 MainVideoConversionState = VideoFile.ConversionState.Converting,
-        //                 ProxyConversionState = VideoFile.ConversionState.Error,
-        //                 ProxyProgress = 3
-        //             }
-        //         ],
-        //         FolderName = "/etc", 
-        //     }
-        // };
+        Folders = [];
     }
 }

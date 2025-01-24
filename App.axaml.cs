@@ -6,6 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -56,13 +57,32 @@ public partial class App : Application
             {
                 DataContext = _mainViewModel
             };
-            proxy.FolderAdded += OnFolderAdded;
+            proxy.FolderAdd += OnFolderAdd;
+            proxy.FolderRemove += OnFolderRemove;
+            proxy.FolderOpen += OnFolderOpen;
+            proxy.SelectionChanged += OnSelectionChanged;
             proxy.Closed += OnProxyClosed;
             desktop.MainWindow = proxy;
         }
 
         base.OnFrameworkInitializationCompleted();
         _watcher.ResetAllWatchers(_config.Paths);
+    }
+
+    private void OnFolderOpen(object? sender, FolderEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        var datagrid =(DataGrid) sender;
+        _mainViewModel.ItemsSelected = datagrid.SelectedItems.Count > 0;
+    }
+
+    private void OnFolderRemove(object? sender, FolderEventArgs e)
+    {
+        throw new NotImplementedException();
     }
 
     private async void WatcherFileChanged(object? sender, WatcherEventArgs e)
@@ -282,7 +302,7 @@ public partial class App : Application
         _mainViewModel.RefreshSingleItem(folder, mainProgress, proxyProgress);
     }
 
-    private async void OnFolderAdded(object? sender, FolderEventArgs e)
+    private async void OnFolderAdd(object? sender, FolderEventArgs e)
     {
         AddFolderToQueue(e.Folder);
         await ProcessQueue();
