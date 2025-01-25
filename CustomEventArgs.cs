@@ -17,6 +17,7 @@ public class FfmpegEventArgs : EventArgs
     public Converter.ConversionInfo? ConversionInfo { get; set; }
     public int Progress { get; set; }
     public bool IsFinished { get; set; }
+    public bool IsError { get; set; }
 
     public FfmpegEventArgs(Converter.ConversionInfo conversionInfo, int progress)
     {

@@ -13,6 +13,7 @@ public class Converter
 {
     private readonly object _processLock = new();
     public EventHandler<FfmpegEventArgs> ProgressChanged;
+
     private readonly ILogger<Converter> _logger;
     private readonly Config _config;
     private readonly List<ConversionInfo> _runningConversions = [];
@@ -58,6 +59,19 @@ public class Converter
                 .Replace("[OUTPUT]", Path.Combine(targetDirectory, filenameWithoutExtension));
 
             conversionParameters = $"{_config.FfmpegPrefix} {conversionParameters}";
+
+            ConversionInfo conversionInfo = new ConversionInfo
+            {
+                IsMainConversion = isMainConversion,
+                VideoFile = fileToConvert,
+                FolderName = sourceDirectory
+            };
+            
+            lock (_processLock)
+            {
+                _runningConversions.Add(conversionInfo);
+            }
+            
             var ffmpegProcess = new Process();
 
             ffmpegProcess.StartInfo.UseShellExecute = false;
@@ -71,19 +85,14 @@ public class Converter
             ffmpegProcess.Exited += FfmpegProcessOnExited;
             ffmpegProcess.ErrorDataReceived += FfmpegProcessOnErrorDataReceived;
             ffmpegProcess.Start();
+            
+//            var id = ffmpegProcess.Id;
             ffmpegProcess.BeginErrorReadLine();
-            var id = ffmpegProcess.Id;
+
             lock (_processLock)
             {
-                _runningConversions.Add(new ConversionInfo
-                {
-                    IsMainConversion = isMainConversion,
-                    VideoFile = fileToConvert,
-                    FolderName = sourceDirectory,
-                    Id = id
-                });
+                conversionInfo.Id = ffmpegProcess.Id;
             }
-
             await ffmpegProcess.WaitForExitAsync();
             return true;
         }
@@ -125,7 +134,15 @@ public class Converter
         // Weirdly, the error output is used for updates
         if (e.Data == null) return;
         var line = e.Data.Trim();
+
         var process = (Process)sender;
+        if (line.Contains("Error"))
+        {
+            _logger.LogError(line);
+            var conversionInfo = GetConversionInfo(process.Id);
+            ProgressChanged?.Invoke(sender, new FfmpegEventArgs(conversionInfo, 0) { IsError = true});
+            return;
+        }
         var duration = GetDuration(process.Id, line);
         var position = GetPosition(process.Id, line);
         if (duration == null && position == null) _logger.LogDebug(line);
@@ -193,7 +210,7 @@ public class Converter
 
     public class ConversionInfo
     {
-        public int Id { get; init; }
+        public int Id { get; set; }
         public TimeSpan Duration { get; set; }
         public TimeSpan Position { get; set; }
         public VideoFile VideoFile { get; init; } = new();

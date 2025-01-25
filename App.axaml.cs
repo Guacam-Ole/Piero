@@ -47,7 +47,7 @@ public partial class App : Application
         _config = services.GetRequiredService<Config>();
         _converter = services.GetRequiredService<Converter>();
         _captions = services.GetRequiredService<Captions>();
-        _converter.ProgressChanged += ProcessChanged;
+        _converter.ProgressChanged += ProgressChanged;
         _logger = services.GetRequiredService<ILogger<App>>();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -71,7 +71,9 @@ public partial class App : Application
             AddFolderToQueue(path, true);
             _watcher!.AddWatcher(path);
         }
+
         _watcher.ResetAllWatchers(_config.Paths);
+        ProcessQueue();
     }
 
     private void OnFolderDisplay(object? sender, FolderEventArgs e)
@@ -81,7 +83,7 @@ public partial class App : Application
 
     private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        var datagrid =(DataGrid) sender;
+        var datagrid = (DataGrid)sender;
         _mainViewModel.ItemsSelected = datagrid.SelectedItems.Count > 0;
     }
 
@@ -89,7 +91,7 @@ public partial class App : Application
     {
         _config.Paths.Remove(e.Folder);
         _queue.RemoveAll(q => q.FolderName == e.Folder);
-        UpdateViewModel();   
+        UpdateViewModel();
     }
 
     private async void WatcherFileChanged(object? sender, WatcherEventArgs e)
@@ -105,21 +107,26 @@ public partial class App : Application
         await ProcessQueue();
     }
 
-    private void ProcessChanged(object? sender, FfmpegEventArgs e)
+    private void ProgressChanged(object? sender, FfmpegEventArgs e)
     {
         if (e.ConversionInfo == null) return;
 
         var matchingFolder = _queue.First(q => q.FolderName == e.ConversionInfo.FolderName);
         var matchingFile = matchingFolder.FilesToConvert.First(f => f.FullName == e.ConversionInfo.VideoFile.FullName);
-        var newState = e.IsFinished ? VideoFile.ConversionState.Converted : VideoFile.ConversionState.Converting;
+
+        var newState = VideoFile.ConversionState.Converting;
+        if (e.IsFinished) newState = VideoFile.ConversionState.Converted;
+        if (e.IsError) newState = VideoFile.ConversionState.Error;
 
         if (e.ConversionInfo.IsMainConversion)
         {
-            matchingFile.MainVideoConversionState = newState;
+            if (matchingFile.MainVideoConversionState != VideoFile.ConversionState.Error)
+                matchingFile.MainVideoConversionState = newState;
         }
         else
         {
-            matchingFile.ProxyConversionState = newState;
+            if (matchingFile.ProxyConversionState != VideoFile.ConversionState.Error)
+                matchingFile.ProxyConversionState = newState;
         }
 
         if (e.ConversionInfo.IsMainConversion)
@@ -140,9 +147,9 @@ public partial class App : Application
         File.WriteAllText("config.json", jsonConf);
     }
 
-    private void AddFolderToQueue(string folder, bool init=false)
+    private void AddFolderToQueue(string folder, bool init = false)
     {
-        if ( !init && !_config!.AddPath(folder))
+        if (!init && !_config!.AddPath(folder))
         {
             // TODO: Show MessageBox
             _logger.LogInformation("'{folder}' has already been added", folder);
@@ -164,13 +171,14 @@ public partial class App : Application
         {
             AddSingleFileToQueue(file, folderConf);
         }
+
         UpdateViewModel();
     }
 
     private void AddSingleFileToQueue(FileInfo file, FolderInfo folderConf)
     {
-         if (!_config!.Extensions.Contains(file.Extension) ||
-             folderConf.FilesToConvert.Any(f => f.FullName == file.FullName)) return;
+        if (!_config!.Extensions.Contains(file.Extension) ||
+            folderConf.FilesToConvert.Any(f => f.FullName == file.FullName)) return;
 
         folderConf.FilesToConvert.Add(new VideoFile
         {
