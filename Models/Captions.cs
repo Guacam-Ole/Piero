@@ -1,37 +1,18 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Piero.Models;
 
-public sealed class Captions:INotifyPropertyChanged
+public partial class Captions : ObservableObject
 {
     private const string IdleTitle = "🥑 Piero: DaVinci Resolve Autoconversion & Proxy Generator 🥑";
-    private string _title;
-
-    public string Title
-    {
-        get => _title;
-        set => SetField(ref _title, value);
-    }
+    [ObservableProperty] private string _title;
 
     public void SetIdle()
     {
-        Title = IdleTitle;
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return;
-        field = value;
-        OnPropertyChanged(propertyName);
+        _title = IdleTitle;
     }
 
     public Captions()
