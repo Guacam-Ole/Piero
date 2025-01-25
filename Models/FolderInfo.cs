@@ -21,7 +21,8 @@ public partial class FolderInfo : ObservableObject
     [ObservableProperty] private int _filesTotal;
 
 
-    public List<VideoFile> FilesToConvert { get; set; } = [];
+    [ObservableProperty]
+    private List<VideoFile> _filesToConvert  = [];
 
     public required string FolderName { get; set; }
 

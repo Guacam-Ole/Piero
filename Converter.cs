@@ -26,23 +26,35 @@ public class Converter
     public static bool TargetExists(string sourceFilename, string targetDirectory)
     {
         var filenameWithoutExtension = Path.GetFileNameWithoutExtension(sourceFilename);
+        targetDirectory = GetPath(Path.GetDirectoryName(sourceFilename), targetDirectory);
         var targetFile = Path.Combine(targetDirectory, filenameWithoutExtension);
-        return File.Exists(targetFile);
+        if (!Directory.Exists(targetDirectory)) return false;
+        var existingConversion = Directory.GetFiles(targetDirectory, $"{filenameWithoutExtension}.*").FirstOrDefault();
+        return existingConversion != null;
+    }
+
+    private static string GetPath(string sourceDirectory, string targetDirectory)
+    {
+        if (targetDirectory.StartsWith("./")) targetDirectory = Path.Combine(sourceDirectory, targetDirectory);
+        return targetDirectory;
     }
 
     public async Task<bool> StartConversion(string sourceDirectory, VideoFile fileToConvert,
-        string command, bool isMainConversion)
+        Config.FfMpegConfig config, bool isMainConversion)
     {
-        var targetDirectory = isMainConversion ? _config.VideoPath : _config.ProxyPath;
+        var targetDirectory =
+            GetPath(
+                sourceDirectory, isMainConversion ? _config.VideoPath : _config.ProxyPath
+            );
         var sourceFilename = fileToConvert.FullName;
-        if (targetDirectory.StartsWith("./")) targetDirectory = Path.Combine(sourceDirectory, targetDirectory);
+
         try
         {
             if (!Directory.Exists(targetDirectory)) Directory.CreateDirectory(targetDirectory);
             var filenameWithoutExtension = Path.GetFileNameWithoutExtension(sourceFilename);
             var sourceFile = Path.Combine(sourceDirectory, sourceFilename);
 
-            var conversionParameters = command.Replace("[INPUT]", sourceFile)
+            var conversionParameters = config.Command.Replace("[INPUT]", sourceFile)
                 .Replace("[OUTPUT]", Path.Combine(targetDirectory, filenameWithoutExtension));
 
             conversionParameters = $"{_config.FfmpegPrefix} {conversionParameters}";
@@ -181,7 +193,7 @@ public class Converter
 
     public class ConversionInfo
     {
-        public int Id { get; init; } 
+        public int Id { get; init; }
         public TimeSpan Duration { get; set; }
         public TimeSpan Position { get; set; }
         public VideoFile VideoFile { get; init; } = new();

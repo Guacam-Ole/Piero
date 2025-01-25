@@ -181,7 +181,6 @@ public partial class App : Application
         });
 
         _logger.LogDebug("Added '{file}' to queue", file.FullName);
-        
     }
 
     private static string HumanReadableFileSize(long sizeInBytes)
@@ -218,7 +217,6 @@ public partial class App : Application
         {
             _queueIsProcessing = true;
             _logger.LogDebug("Start processing Queue");
-            _queueIsProcessing = true;
             var pendingMainConversionFolders = _queue.Where(q =>
                 q.FilesToConvert.Any(f => f.MainVideoConversionState == VideoFile.ConversionState.Pending)).ToList();
             var pendingProxyConversionFolders = _queue.Where(q =>
@@ -250,8 +248,8 @@ public partial class App : Application
 
     private async Task ConvertFolder(FolderInfo folder, bool mainVideo)
     {
-        var conversionCommand = _config.FfmpegConfigs[mainVideo ? _config.ConversionIndex : _config.ProxyIndex].Command;
-        if (string.IsNullOrWhiteSpace(conversionCommand)) return; // TODO: MessageBox
+        var conversion = _config.FfmpegConfigs[mainVideo ? _config.ConversionIndex : _config.ProxyIndex];
+        if (string.IsNullOrWhiteSpace(conversion.Command)) return; // TODO: MessageBox
         var filesToConvert =
             (mainVideo
                 ? folder.FilesToConvert.Where(q => q.MainVideoConversionState == VideoFile.ConversionState.Pending)
@@ -265,7 +263,7 @@ public partial class App : Application
 
         foreach (var file in filesToConvert)
         {
-            var task = _converter!.StartConversion(folder.FolderName, file, conversionCommand, mainVideo);
+            var task = _converter!.StartConversion(folder.FolderName, file, conversion, mainVideo);
             if (mainVideo)
             {
                 file.MainVideoConversionState = VideoFile.ConversionState.Converting;

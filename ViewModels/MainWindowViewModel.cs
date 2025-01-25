@@ -30,6 +30,8 @@ public partial class MainWindowViewModel : ViewModelBase
             Folders.Clear();
             foreach (var folder in folderInfo)
             {
+                folder.RecalculateMain(null);
+                folder.RecalculateProxy(null);
                 Folders.Add(folder);
             }
         });
