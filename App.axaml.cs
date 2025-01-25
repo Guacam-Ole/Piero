@@ -82,7 +82,8 @@ public partial class App : Application
 
     private void OnFolderRemove(object? sender, FolderEventArgs e)
     {
-        throw new NotImplementedException();
+        _config.Paths.Remove(e.Folder);
+        _queue.RemoveAll(q => q.FolderName == e.Folder);
     }
 
     private async void WatcherFileChanged(object? sender, WatcherEventArgs e)
@@ -157,12 +158,13 @@ public partial class App : Application
         {
             AddSingleFileToQueue(file, folderConf);
         }
+        UpdateViewModel();
     }
 
     private void AddSingleFileToQueue(FileInfo file, FolderInfo folderConf)
     {
-        if (!_config!.Extensions.Contains(file.Extension) ||
-            folderConf.FilesToConvert.Any(f => f.FullName == file.FullName)) return;
+         if (!_config!.Extensions.Contains(file.Extension) ||
+             folderConf.FilesToConvert.Any(f => f.FullName == file.FullName)) return;
 
         folderConf.FilesToConvert.Add(new VideoFile
         {
@@ -179,7 +181,7 @@ public partial class App : Application
         });
 
         _logger.LogDebug("Added '{file}' to queue", file.FullName);
-        UpdateViewModel();
+        
     }
 
     private static string HumanReadableFileSize(long sizeInBytes)
