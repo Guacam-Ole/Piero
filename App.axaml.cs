@@ -59,17 +59,22 @@ public partial class App : Application
             };
             proxy.FolderAdd += OnFolderAdd;
             proxy.FolderRemove += OnFolderRemove;
-            proxy.FolderOpen += OnFolderOpen;
+            proxy.FolderOpen += OnFolderDisplay;
             proxy.SelectionChanged += OnSelectionChanged;
             proxy.Closed += OnProxyClosed;
             desktop.MainWindow = proxy;
         }
 
         base.OnFrameworkInitializationCompleted();
+        foreach (var path in _config.Paths)
+        {
+            AddFolderToQueue(path, true);
+            _watcher!.AddWatcher(path);
+        }
         _watcher.ResetAllWatchers(_config.Paths);
     }
 
-    private void OnFolderOpen(object? sender, FolderEventArgs e)
+    private void OnFolderDisplay(object? sender, FolderEventArgs e)
     {
         throw new NotImplementedException();
     }
@@ -84,6 +89,7 @@ public partial class App : Application
     {
         _config.Paths.Remove(e.Folder);
         _queue.RemoveAll(q => q.FolderName == e.Folder);
+        UpdateViewModel();   
     }
 
     private async void WatcherFileChanged(object? sender, WatcherEventArgs e)
@@ -134,9 +140,9 @@ public partial class App : Application
         File.WriteAllText("config.json", jsonConf);
     }
 
-    private void AddFolderToQueue(string folder)
+    private void AddFolderToQueue(string folder, bool init=false)
     {
-        if (!_config!.AddPath(folder))
+        if ( !init && !_config!.AddPath(folder))
         {
             // TODO: Show MessageBox
             _logger.LogInformation("'{folder}' has already been added", folder);
@@ -304,9 +310,14 @@ public partial class App : Application
 
     private async void OnFolderAdd(object? sender, FolderEventArgs e)
     {
-        AddFolderToQueue(e.Folder);
+        await ProcessFolder(e.Folder);
+    }
+
+    private async Task ProcessFolder(string folderName)
+    {
+        AddFolderToQueue(folderName);
         await ProcessQueue();
-        _watcher!.AddWatcher(e.Folder);
+        _watcher!.AddWatcher(folderName);
     }
 
     private void DisableAvaloniaDataAnnotationValidation()
