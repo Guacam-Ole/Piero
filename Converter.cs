@@ -34,7 +34,7 @@ public class Converter
         return existingConversion != null;
     }
 
-    private static string GetPath(string sourceDirectory, string targetDirectory)
+    public static string GetPath(string sourceDirectory, string targetDirectory)
     {
         if (targetDirectory.StartsWith("./")) targetDirectory = Path.Combine(sourceDirectory, targetDirectory);
         return targetDirectory;
@@ -86,7 +86,6 @@ public class Converter
             ffmpegProcess.ErrorDataReceived += FfmpegProcessOnErrorDataReceived;
             ffmpegProcess.Start();
             
-//            var id = ffmpegProcess.Id;
             ffmpegProcess.BeginErrorReadLine();
 
             lock (_processLock)

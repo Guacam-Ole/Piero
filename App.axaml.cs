@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -53,13 +54,12 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             DisableAvaloniaDataAnnotationValidation();
-            var proxy = new Proxy
+            var proxy = new Proxy(_config)
             {
                 DataContext = _mainViewModel
             };
             proxy.FolderAdd += OnFolderAdd;
             proxy.FolderRemove += OnFolderRemove;
-            proxy.FolderOpen += OnFolderDisplay;
             proxy.SelectionChanged += OnSelectionChanged;
             proxy.Closed += OnProxyClosed;
             desktop.MainWindow = proxy;
@@ -75,16 +75,11 @@ public partial class App : Application
         _watcher.ResetAllWatchers(_config.Paths);
         ProcessQueue();
     }
-
-    private void OnFolderDisplay(object? sender, FolderEventArgs e)
-    {
-        throw new NotImplementedException();
-    }
-
     private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        var datagrid = (DataGrid)sender;
+        var datagrid = (DataGrid)sender!;
         _mainViewModel.ItemsSelected = datagrid.SelectedItems.Count > 0;
+        _mainViewModel.SingleItemSelected = datagrid.SelectedItems.Count == 1;
     }
 
     private void OnFolderRemove(object? sender, FolderEventArgs e)

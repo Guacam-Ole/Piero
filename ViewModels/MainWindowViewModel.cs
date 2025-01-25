@@ -17,6 +17,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
     [ObservableProperty] private bool _itemsSelected;
+    [ObservableProperty] private bool _singleItemSelected;
+    
 
     public MainWindowViewModel()
     {

@@ -82,20 +82,19 @@
                 </Button>
                 <Button IsEnabled="{ Binding ItemsSelected  }" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
                         BorderBrush="Aqua" Foreground="Aqua"
-                        Click="RemoveFolder_Click"
-                        >
+                        Click="RemoveFolder_Click">
                     <Label HorizontalAlignment="Center">Remove Folder</Label>
                 </Button>
-                <Button IsEnabled="False" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
-                        BorderBrush="Aqua" Foreground="Aqua">
+                <Button IsEnabled="{ Binding SingleItemSelected  }" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
+                        BorderBrush="Aqua" Foreground="Aqua" Click="DisplayOriginal_Click">
                     <Label HorizontalAlignment="Center">View Original</Label>
                 </Button>
-                <Button IsEnabled="False" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
-                        BorderBrush="Aqua" Foreground="Aqua">
+                <Button IsEnabled="{ Binding SingleItemSelected  }" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
+                        BorderBrush="Aqua" Foreground="Aqua" Click="DisplayConverted_Click">
                     <Label HorizontalAlignment="Center">View Converted</Label>
                 </Button>
-                <Button IsEnabled="False" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
-                        BorderBrush="Aqua" Foreground="Aqua">
+                <Button IsEnabled="{ Binding SingleItemSelected  }" HorizontalAlignment="Center" Width="140" CornerRadius="10" Background="Black"
+                        BorderBrush="Aqua" Foreground="Aqua" Click="DisplayProxy_Click">
                     <Label HorizontalAlignment="Center">View Proxy</Label>
                 </Button>
             </StackPanel>
