@@ -21,6 +21,7 @@ public partial class Proxy : Window
     {
         _config = config;
         InitializeComponent();
+        this.Hide();
     }
 
 
@@ -78,4 +79,5 @@ public partial class Proxy : Window
     {
         DisplayFolder(_config.ProxyPath).Wait();
     }
+    
 }

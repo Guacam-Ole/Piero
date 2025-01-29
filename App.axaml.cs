@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -29,14 +28,15 @@ public partial class App : Application
     private MainWindowViewModel _mainViewModel;
     private readonly List<FolderInfo> _queue = [];
     private bool _queueIsProcessing;
-
+    private Proxy _proxy;
+    
 
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    private void Init()
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddServices();
@@ -50,22 +50,15 @@ public partial class App : Application
         _captions = services.GetRequiredService<Captions>();
         _converter.ProgressChanged += ProgressChanged;
         _logger = services.GetRequiredService<ILogger<App>>();
-
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        _proxy = new Proxy(_config)
         {
-            DisableAvaloniaDataAnnotationValidation();
-            var proxy = new Proxy(_config)
-            {
-                DataContext = _mainViewModel
-            };
-            proxy.FolderAdd += OnFolderAdd;
-            proxy.FolderRemove += OnFolderRemove;
-            proxy.SelectionChanged += OnSelectionChanged;
-            proxy.Closed += OnProxyClosed;
-            desktop.MainWindow = proxy;
-        }
-
-        base.OnFrameworkInitializationCompleted();
+            DataContext = _mainViewModel
+        };
+        _proxy.FolderAdd += OnFolderAdd;
+        _proxy.FolderRemove += OnFolderRemove;
+        _proxy.SelectionChanged += OnSelectionChanged;
+        _proxy.Closed += OnProxyClosed;
+        _proxy.Closing += OnProxyClosing;
         foreach (var path in _config.Paths)
         {
             AddFolderToQueue(path, true);
@@ -75,6 +68,27 @@ public partial class App : Application
         _watcher.ResetAllWatchers(_config.Paths);
         ProcessQueue();
     }
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        Init();
+
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            DisableAvaloniaDataAnnotationValidation();
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        }
+
+        base.OnFrameworkInitializationCompleted();
+        
+    }
+
+    private void OnProxyClosing(object? sender, WindowClosingEventArgs e)
+    {
+        _proxy.Hide();
+        e.Cancel = true;
+    }
+
     private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         var datagrid = (DataGrid)sender!;
@@ -91,15 +105,24 @@ public partial class App : Application
 
     private async void WatcherFileChanged(object? sender, WatcherEventArgs e)
     {
-        if (e.Operation != WatcherEventArgs.Operations.Created)
+        try
         {
-            _logger.LogDebug("Ignoring watcher operation '{operation}'", e.Operation);
-            return;
-        }
+            if (e.Operation != WatcherEventArgs.Operations.Created)
+            {
+                _logger.LogDebug("Ignoring watcher operation '{operation}'", e.Operation);
+                return;
+            }
 
-        var folderConf = _queue.First(f => f.FolderName == e.Directory);
-        AddSingleFileToQueue(new FileInfo(e.Filename), folderConf);
-        await ProcessQueue();
+            var folderConf = _queue.First(f => f.FolderName == e.Directory);
+            var fileInfo =  new FileInfo(e.Filename);
+//            var fromDi = new DirectoryInfo(fileInfo.Directory.FullName).GetFiles(fileInfo.Name);
+            AddSingleFileToQueue(fileInfo, folderConf);
+            await ProcessQueue();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,"Error on Watcher");
+        }
     }
 
     private void ProgressChanged(object? sender, FfmpegEventArgs e)
@@ -140,6 +163,7 @@ public partial class App : Application
     {
         var jsonConf = JsonConvert.SerializeObject(_config);
         File.WriteAllText("config.json", jsonConf);
+        
     }
 
     private void AddFolderToQueue(string folder, bool init = false)
@@ -313,7 +337,14 @@ public partial class App : Application
 
     private async void OnFolderAdd(object? sender, FolderEventArgs e)
     {
-        await ProcessFolder(e.Folder);
+        try
+        {
+            await ProcessFolder(e.Folder);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error on FolderAdd");
+        }
     }
 
     private async Task ProcessFolder(string folderName)
@@ -333,6 +364,19 @@ public partial class App : Application
         foreach (var plugin in dataValidationPluginsToRemove)
         {
             BindingPlugins.DataValidators.Remove(plugin);
+        }
+    }
+
+    private void TrayIcon_OnClicked(object? sender, EventArgs e)
+    {
+        _proxy.Show();
+    }
+
+    private void TrayIcon_Close(object? sender, EventArgs e)
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
         }
     }
 }

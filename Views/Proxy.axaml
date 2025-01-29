@@ -4,14 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:Piero.Models"
-        mc:Ignorable="d" d:DesignWidth="750" d:DesignHeight="550" MinWidth="750" MinHeight="450"
+        mc:Ignorable="d" d:DesignWidth="750" d:DesignHeight="550" MinWidth="750" MinHeight="450" 
         x:Class="Piero.Views.Proxy"
         x:DataType="vm:MainWindowViewModel"
 
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/piero.ico"
         Title="Piero:DaVinci Resolve Proxy"
         TransparencyLevelHint="AcrylicBlur"
-
+        IsVisible="False"
         ExtendClientAreaToDecorationsHint="True">
 
     <Design.DataContext>

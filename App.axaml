@@ -12,4 +12,21 @@
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
     </Application.Styles>
+    
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="/Assets/piero.ico" 
+                      ToolTipText="Piero"
+                       Clicked="TrayIcon_OnClicked"
+                      >
+                 
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Show Conversion Window" Click="TrayIcon_OnClicked" />
+                        <NativeMenuItem Header="Close Piero" Click="TrayIcon_Close" />
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
 </Application>
